@@ -16,7 +16,7 @@ export class AuthService {
     ) { }
     async register(dto: CreateUserDto) {
         const exists = await this.userService.findByEmail(dto.email);
-        if (exists) throw new ConflictException('Email already exists');
+        if (exists) throw new ConflictException('Account already exists');
 
         const hashed = await bcrypt.hash(dto.password, 10);
 
@@ -43,10 +43,10 @@ export class AuthService {
 
     async logIn(dto:LoginDto){
         const user=await this.userService.findByEmail(dto.email)
-        if(!user) throw new UnauthorizedException('email or password invalid');
+        if(!user) throw new UnauthorizedException('Invalid email or password');
          
         const validPassword=await bcrypt.compare(dto.password,user.password)
-        if(!validPassword) throw new UnauthorizedException('email or password invalid')
+        if(!validPassword) throw new UnauthorizedException('Invalid email or password')
         
         const token=this.jwtService.sign({sub:user._id,role:user.role})
                 return {
