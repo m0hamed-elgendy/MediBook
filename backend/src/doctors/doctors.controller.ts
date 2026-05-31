@@ -16,6 +16,7 @@ export class DoctorsController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard,new RolesGuard(['admin']))
     findAll() {
         return this.doctorServices.findAll();
     }

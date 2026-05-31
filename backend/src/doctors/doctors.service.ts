@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, isValidObjectId } from 'mongoose';
 import { Doctor, DoctorDocument } from './doctor.schema';
 import { CreateDoctorDto } from './create-doctor.dto';
 
@@ -19,6 +19,7 @@ export class DoctorsService {
   }
 
   async findOne(id: string): Promise<DoctorDocument> {
+    if (!isValidObjectId(id)) throw new BadRequestException('Invalid doctor ID');
     const doctor = await this.doctorModel.findById(id).populate('user', 'name email');
     if (!doctor) throw new NotFoundException('Doctor not found');
     return doctor;
@@ -31,6 +32,7 @@ export class DoctorsService {
   }
 
   async update(id: string, dto: Partial<CreateDoctorDto>): Promise<DoctorDocument> {
+    if (!isValidObjectId(id)) throw new BadRequestException('Invalid doctor ID');
     const doctor = await this.doctorModel.findByIdAndUpdate(id, dto, { new: true });
     if (!doctor) throw new NotFoundException('Doctor not found');
     return doctor;
