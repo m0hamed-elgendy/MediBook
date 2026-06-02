@@ -31,8 +31,6 @@ export class Appointment {
     notes?: string;
 
 
-
-
 }
 
 export const appointmentSchema = SchemaFactory.createForClass(Appointment)

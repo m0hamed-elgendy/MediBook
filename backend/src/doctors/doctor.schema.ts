@@ -48,7 +48,18 @@ export class Doctor {
     
 
     @Prop({ default: 20 })
-    sessionDuration?: number;
+    sessionDuration?: number;  
+
+
+     @Prop({min:0,type:Number})
+     averageRating:number
+     
+     @Prop({min:0,type:Number})
+     reviewsCount?:number
+
+
+
+
 
     @Prop({ default: true })
     isActive: boolean;

@@ -28,6 +28,8 @@ export class AppointmentsService {
             throw new BadRequestException('This doctor is not currently accepting appointments');
         }
 
+        
+
         // #3: Validate appointment date is today or in the future
         const appointmentDate = new Date(dto.date);
         const today = new Date();
