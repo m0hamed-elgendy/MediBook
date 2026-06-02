@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { AppointmentsController } from './appointments.controller';
-import { MongooseModule, Schema } from '@nestjs/mongoose';
+import { MongooseModule } from '@nestjs/mongoose';
 import { Appointment, appointmentSchema } from './appointment.schema';
 import { DoctorsModule } from 'src/doctors/doctors.module';
 
@@ -15,7 +15,7 @@ import { DoctorsModule } from 'src/doctors/doctors.module';
   ],
   providers: [AppointmentsService],
   controllers: [AppointmentsController],
-  exports: [AppointmentsService],
+  exports: [AppointmentsService, MongooseModule],
 
 })
 export class AppointmentsModule {}
