@@ -27,10 +27,23 @@ export class AuthController {
     async profile(@Request() req) {
         return req.user;
     }
-    
+
     @Get('admin-only')
-    @UseGuards(JwtAuthGuard,new RolesGuard(['patient']))
-     async admin(){
+    @UseGuards(JwtAuthGuard, new RolesGuard(['patient']))
+    async admin() {
         return 'admin-only'
-     }
+    }
+
+    @Post('refresh')
+    @HttpCode(HttpStatus.OK)
+    refresh(@Body('refreshToken') refreshToken: string) {
+        return this.authServices.refresh(refreshToken);
+    }
+
+    @Post('Logout')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(JwtAuthGuard)
+    logout(@Request() req){
+        this.authServices.logout(req.user._id)
+    }
 }

@@ -6,6 +6,17 @@ import { Model } from 'mongoose';
 import { CreateAppointmentDto } from './Dto/create-appointment.dto';
 import { DoctorsService } from 'src/doctors/doctors.service';
 
+/**
+ * Converts a 12-hour AM/PM time string (e.g. "02:30 PM") to total minutes since midnight.
+ */
+function parseTimeToMinutes(time: string): number {
+    const [timePart, period] = time.split(' ');
+    let [hours, minutes] = timePart.split(':').map(Number);
+    if (period === 'AM' && hours === 12) hours = 0;
+    if (period === 'PM' && hours !== 12) hours += 12;
+    return hours * 60 + minutes;
+}
+
 @Injectable()
 export class AppointmentsService {
 
@@ -42,10 +53,9 @@ export class AppointmentsService {
         // #4: If booking today, ensure the time hasn't already passed
         const now = new Date();
         if (appointmentDate.getTime() === today.getTime()) {
-            const [hours, minutes] = dto.time.split(':').map(Number);
-            const appointmentTime = new Date();
-            appointmentTime.setHours(hours, minutes, 0, 0);
-            if (appointmentTime <= now) {
+            const appointmentMinutes = parseTimeToMinutes(dto.time);
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            if (appointmentMinutes <= currentMinutes) {
                 throw new BadRequestException('Cannot book an appointment in the past. Please choose a later time');
             }
         }
@@ -66,7 +76,10 @@ export class AppointmentsService {
         }
 
         // #6: Check time is within the doctor's working hours
-        if (dto.time < availableSlot.from || dto.time > availableSlot.to) {
+        const appointmentMinutes = parseTimeToMinutes(dto.time);
+        const slotFromMinutes = parseTimeToMinutes(availableSlot.from);
+        const slotToMinutes = parseTimeToMinutes(availableSlot.to);
+        if (appointmentMinutes < slotFromMinutes || appointmentMinutes > slotToMinutes) {
             throw new BadRequestException(
                 `Appointment time must be between ${availableSlot.from} and ${availableSlot.to} on ${dayName}`
             );

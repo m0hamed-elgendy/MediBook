@@ -11,8 +11,8 @@ export class CreateAppointmentDto {
      
     @IsNotEmpty()
     @IsString()
-    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-        message: 'Time must be in HH:mm format (e.g. 09:30, 14:00)',
+    @Matches(/^(0[1-9]|1[0-2]):[0-5]\d\s(AM|PM)$/, {
+        message: 'Time must be in hh:mm AM/PM format (e.g. 09:30 AM, 02:00 PM)',
     })
     time!:string
 }

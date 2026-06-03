@@ -22,7 +22,7 @@ export class UsersService {
     return await this.userModel.findById(id)
   }
 
-  async create(dto: CreateUserDto): Promise<UserDocument | null> {
+  async create(dto: CreateUserDto): Promise<UserDocument> {
     return await this.userModel.create(dto);
   }
 
@@ -35,6 +35,15 @@ export class UsersService {
     );
     if (!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async update(userId:string,data:Partial<User>):Promise<UserDocument|null>{
+    const user=await this.userModel.findByIdAndUpdate(userId,data,{new:true})
+    if(!user)
+      throw new NotFoundException('User Not Found');
+
+    return user;
+
   }
 
 }

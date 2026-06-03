@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsArray, Min, ValidateNested } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsOptional, IsArray, Min, ValidateNested, Matches } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class AvailabilityDto {
@@ -8,10 +8,16 @@ class AvailabilityDto {
 
   @IsNotEmpty()
   @IsString()
+  @Matches(/^(0[1-9]|1[0-2]):[0-5]\d\s(AM|PM)$/, {
+    message: 'from must be in hh:mm AM/PM format (e.g. 09:00 AM, 02:30 PM)',
+  })
   from!: string;
 
   @IsNotEmpty()
   @IsString()
+  @Matches(/^(0[1-9]|1[0-2]):[0-5]\d\s(AM|PM)$/, {
+    message: 'to must be in hh:mm AM/PM format (e.g. 09:00 AM, 02:30 PM)',
+  })
   to!: string;
 }
 
