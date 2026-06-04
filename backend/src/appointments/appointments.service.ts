@@ -5,6 +5,7 @@ import { appiontmentDocument, Appointment, AppointmentStatus } from './appointme
 import { Model } from 'mongoose';
 import { CreateAppointmentDto } from './Dto/create-appointment.dto';
 import { DoctorsService } from 'src/doctors/doctors.service';
+import { PaginationDto } from 'src/common/pagination.dto';
 
 /**
  * Converts a 12-hour AM/PM time string (e.g. "02:30 PM") to total minutes since midnight.
@@ -39,7 +40,7 @@ export class AppointmentsService {
             throw new BadRequestException('This doctor is not currently accepting appointments');
         }
 
-        
+
 
         // #3: Validate appointment date is today or in the future
         const appointmentDate = new Date(dto.date);
@@ -114,33 +115,77 @@ export class AppointmentsService {
 
     }
 
-    async findByPatient(patientId: string, status?: string): Promise<appiontmentDocument[]> {
+    async findByPatient(patientId: string, status?: string, pagination?: PaginationDto) {
+        const { page = 1, limit = 10 } = pagination || {};
+        const skip = (page - 1) * limit;
         const filter: any = { patient: patientId };
         if (status) filter.status = status;
-        return this.appointmentModel.find(filter).
-            populate('doctor').
-            populate('patient', 'name email')
-            .sort({ date: -1 })
+
+        const [data, total] = await Promise.all([
+            this.appointmentModel.find(filter)
+                .populate('doctor')
+                .populate('patient', 'name email')
+                .sort({ date: -1 })
+                .skip(skip)
+                .limit(limit),
+            this.appointmentModel.countDocuments(filter),
+        ]);
+
+        return {
+            data,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
+    async findByDoctor(doctorId: string, status?: string, date?: string, pagination?: PaginationDto) {
+        const { page = 1, limit = 10 } = pagination || {};
+        const skip = (page - 1) * limit;
+        const filter: any = { doctor: doctorId };
+        if (status) filter.status = status;
+        if (date) filter.date = date;
+
+        const [data, total] = await Promise.all([
+            this.appointmentModel.find(filter)
+                .populate('patient', 'name email')
+                .sort({ date: 1 })
+                .skip(skip)
+                .limit(limit),
+            this.appointmentModel.countDocuments(filter),
+        ]);
+
+        return {
+            data,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+        };
     }
 
-async findByDoctor(doctorId: string, status?: string, date?: string): Promise<appiontmentDocument[]> {
-    const filter: any = { doctor: doctorId };
-    if (status) filter.status = status;
-    if (date) filter.date = date;
-    return this.appointmentModel.find(filter)
-        .populate('patient', 'name email')
-        .sort({ date: 1 });
-}
-
-    async findAll(filters: { status?: string, doctor?: string, patient?: string, date?: string }): Promise<appiontmentDocument[]> {
+    async findAll(filters: { status?: string, doctor?: string, patient?: string, date?: string }, pagination?: PaginationDto) {
+        const { page = 1, limit = 10 } = pagination || {};
+        const skip = (page - 1) * limit;
         const filter: any = {};
         Object.keys(filters).forEach(key => {
             if (filters[key]) filter[key] = filters[key];
         });
-        return this.appointmentModel.find(filter)
-            .populate('doctor')
-            .populate('patient', 'name email')
-            .sort({ date: -1 });
+
+        const [data, total] = await Promise.all([
+            this.appointmentModel.find(filter)
+                .populate('doctor')
+                .populate('patient', 'name email')
+                .sort({ date: -1 })
+                .skip(skip)
+                .limit(limit),
+            this.appointmentModel.countDocuments(filter),
+        ]);
+
+        return {
+            data,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+        };
     }
     async updateStatus(id: string, status: AppointmentStatus, notes?: string): Promise<appiontmentDocument> {
         const appointment = await this.appointmentModel.findByIdAndUpdate(

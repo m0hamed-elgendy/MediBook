@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { CreateReviewDto } from './Dto/create-review.dto';
 import { DoctorsService } from 'src/doctors/doctors.service';
 import { UpdateReviewDto } from './Dto/update-review.dto';
+import { PaginationDto } from 'src/common/pagination.dto';
 
 @Controller('reviews')
 export class ReviewsController {
@@ -21,8 +22,8 @@ export class ReviewsController {
     }
 
     @Get('doctor/:doctorId')
-    async getDoctorRatings(@Param('doctorId') doctorId: string) {
-        return this.reviewServices.GetDoctorRatings(doctorId)
+    async getDoctorRatings(@Param('doctorId') doctorId: string, @Query() pagination: PaginationDto) {
+        return this.reviewServices.GetDoctorRatings(doctorId, pagination)
     }
 
     @Get('doctor/:doctorId/summary')
@@ -32,15 +33,15 @@ export class ReviewsController {
 
     @Get('my-reviews')
     @UseGuards(JwtAuthGuard, new RolesGuard(['patient']))
-    async getMyReviews(@Request() req) {
-        return this.reviewServices.findByPatient(req.user._id)
+    async getMyReviews(@Request() req, @Query() pagination: PaginationDto) {
+        return this.reviewServices.findByPatient(req.user._id, pagination)
     }
 
     @Get('my-rating')
     @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
-    async getMyRating(@Request() req) {
+    async getMyRating(@Request() req, @Query() pagination: PaginationDto) {
         const doctor = await this.doctorServices.findByUser(req.user._id);
-        return this.reviewServices.GetDoctorRatings(doctor._id.toString())
+        return this.reviewServices.GetDoctorRatings(doctor._id.toString(), pagination)
     }
 
     @Get('my-rating/summary')
@@ -64,3 +65,4 @@ export class ReviewsController {
     }
 
 }
+

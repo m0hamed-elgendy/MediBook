@@ -5,6 +5,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { CreateAppointmentDto } from './Dto/create-appointment.dto';
 import { AppointmentStatus } from './appointment.schema';
 import { DoctorsService } from 'src/doctors/doctors.service';
+import { PaginationDto } from 'src/common/pagination.dto';
 
 @Controller('appointments')
 export class AppointmentsController {
@@ -19,18 +20,20 @@ export class AppointmentsController {
 
     @Get('my')
     @UseGuards(JwtAuthGuard, new RolesGuard(['patient']))
-    findByPatient(@Request() req, @Query('status') status?: string) {
-        return this.appointmentServices.findByPatient(req.user._id, status);
+    findByPatient(@Request() req, @Query('status') status?: string, @Query() pagination?: PaginationDto) {
+        return this.appointmentServices.findByPatient(req.user._id, status, pagination);
     }
+
     @Get('doctor')
     @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
     async findByDoctor(
         @Request() req,
         @Query('status') status?: string,
         @Query('date') date?: string,
+        @Query() pagination?: PaginationDto,
     ) {
         const doctor = await this.doctorsService.findByUser(req.user._id);
-        return this.appointmentServices.findByDoctor(doctor._id.toString(), status, date);
+        return this.appointmentServices.findByDoctor(doctor._id.toString(), status, date, pagination);
     }
 
     @Get()
@@ -40,8 +43,9 @@ export class AppointmentsController {
         @Query('date') date?: string,
         @Query('doctor') doctor?: string,
         @Query('patient') patient?: string,
+        @Query() pagination?: PaginationDto,
     ) {
-        return this.appointmentServices.findAll({ status, doctor, patient, date });
+        return this.appointmentServices.findAll({ status, doctor, patient, date }, pagination);
     }
 
     @Patch(':id/status')

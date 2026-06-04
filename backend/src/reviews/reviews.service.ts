@@ -7,6 +7,7 @@ import { DoctorsService } from 'src/doctors/doctors.service';
 import { appiontmentDocument, Appointment, AppointmentStatus } from 'src/appointments/appointment.schema';
 import { Doctor, DoctorDocument } from 'src/doctors/doctor.schema';
 import { UpdateReviewDto } from './Dto/update-review.dto';
+import { PaginationDto } from 'src/common/pagination.dto';
 
 @Injectable()
 export class ReviewsService {
@@ -79,14 +80,29 @@ export class ReviewsService {
 
 
 
-    async GetDoctorRatings(doctorId: string): Promise<ReviewDocument[]> {
+    async GetDoctorRatings(doctorId: string, pagination?: PaginationDto) {
+        const { page = 1, limit = 10 } = pagination || {};
+        const skip = (page - 1) * limit;
         const doctor = await this.doctorService.findOne(doctorId);
         if (!doctor) throw new NotFoundException('doctor not found');
-        return await this.reviewModel.find({
-            doctor: doctorId
-        }).populate('doctor', 'name email averageRating reviewsCount').
-            populate('patient', 'name email').
-            sort({ createdAt: -1 })
+
+        const filter = { doctor: doctorId };
+        const [data, total] = await Promise.all([
+            this.reviewModel.find(filter)
+                .populate('doctor', 'name email averageRating reviewsCount')
+                .populate('patient', 'name email')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            this.reviewModel.countDocuments(filter),
+        ]);
+
+        return {
+            data,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+        };
     }
 
     async UpdateRatingForDoctor(
@@ -137,13 +153,26 @@ export class ReviewsService {
         return deletedReview;
     }
 
-    async findByPatient(patientId: string): Promise<ReviewDocument[]> {
+    async findByPatient(patientId: string, pagination?: PaginationDto) {
+        const { page = 1, limit = 10 } = pagination || {};
+        const skip = (page - 1) * limit;
 
-        return await this.reviewModel.find({
-            patient: patientId
-        })
-            .populate('doctor', 'name email averageRating reviewsCount')
-            .sort({ createdAt: -1 });
+        const filter = { patient: patientId };
+        const [data, total] = await Promise.all([
+            this.reviewModel.find(filter)
+                .populate('doctor', 'name email averageRating reviewsCount')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            this.reviewModel.countDocuments(filter),
+        ]);
+
+        return {
+            data,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+        };
     }
 
     async getDoctorRatingsSummary(doctorId: string) {

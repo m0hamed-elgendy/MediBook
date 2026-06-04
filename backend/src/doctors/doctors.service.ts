@@ -3,19 +3,42 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, isValidObjectId } from 'mongoose';
 import { Doctor, DoctorDocument } from './doctor.schema';
 import { CreateDoctorDto } from './create-doctor.dto';
+import { PaginationDto } from 'src/common/pagination.dto';
 
 @Injectable()
 export class DoctorsService {
   constructor(
     @InjectModel(Doctor.name) private doctorModel: Model<DoctorDocument>,
-  ) {}
+  ) { }
 
   async create(userId: string, dto: CreateDoctorDto): Promise<DoctorDocument> {
     return this.doctorModel.create({ ...dto, user: userId });
   }
 
-  async findAll(): Promise<DoctorDocument[]> {
-    return this.doctorModel.find({ isActive: true }).populate('user', 'name email');
+  async findAll(pagination: PaginationDto): Promise<{
+    data: DoctorDocument[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    const { page = 1, limit = 10 } = pagination;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.doctorModel
+        .find({ isActive: true })
+        .populate('user', 'name email')
+        .skip(skip)
+        .limit(limit),
+      this.doctorModel.countDocuments({ isActive: true }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: string): Promise<DoctorDocument> {

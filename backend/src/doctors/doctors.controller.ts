@@ -1,8 +1,9 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
 import { CreateDoctorDto } from './create-doctor.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { PaginationDto } from 'src/common/pagination.dto';
 
 @Controller('doctors')
 export class DoctorsController {
@@ -17,8 +18,8 @@ export class DoctorsController {
 
     @Get()
     @UseGuards(JwtAuthGuard,new RolesGuard(['admin']))
-    findAll() {
-        return this.doctorServices.findAll();
+    findAll(@Query() pagination:PaginationDto){
+        return this.doctorServices.findAll(pagination);
     }
 
     @Get('profile')
