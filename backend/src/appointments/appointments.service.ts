@@ -40,7 +40,10 @@ export class AppointmentsService {
             throw new BadRequestException('This doctor is not currently accepting appointments');
         }
 
-
+        // #2.1: Doctor must be approved
+        if (!doctor.isApproved) {
+            throw new BadRequestException('This doctor is not approved yet');
+        }
 
         // #3: Validate appointment date is today or in the future
         const appointmentDate = new Date(dto.date);

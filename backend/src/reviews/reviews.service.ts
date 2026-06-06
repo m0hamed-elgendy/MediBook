@@ -43,6 +43,10 @@ export class ReviewsService {
         const doctor = await this.doctorService.findOne(dto.doctor)
         if (!doctor) throw new NotFoundException('doctor not found');
 
+        if (!doctor.isApproved) {
+            throw new BadRequestException('This doctor is not approved yet');
+        }
+
         const appointment = await this.appointmentModel.findOne({
             _id: dto.appointment,
             doctor: dto.doctor,

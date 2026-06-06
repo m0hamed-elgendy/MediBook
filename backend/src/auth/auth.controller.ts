@@ -44,6 +44,6 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     logout(@Request() req){
-        this.authServices.logout(req.user._id)
+        return this.authServices.logout(req.user._id)
     }
 }

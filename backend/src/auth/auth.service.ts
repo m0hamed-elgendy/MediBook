@@ -79,7 +79,7 @@ export class AuthService {
         const token = await this.generateToken(user);
         await this.userService.update(user._id.toString(),
             {
-                refreshToken: (await token).refreshToken
+                refreshToken: token.refreshToken
             }
         )
         return {

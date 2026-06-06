@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, isValidObjectId } from 'mongoose';
 import { Doctor, DoctorDocument } from './doctor.schema';
 import { CreateDoctorDto } from './create-doctor.dto';
 import { PaginationDto } from 'src/common/pagination.dto';
+import { UserDocument } from 'src/users/user.schema';
 
 @Injectable()
 export class DoctorsService {
@@ -24,13 +25,14 @@ export class DoctorsService {
     const { page = 1, limit = 10 } = pagination;
     const skip = (page - 1) * limit;
 
+    const filter = { isActive: true, isApproved: true };
     const [data, total] = await Promise.all([
       this.doctorModel
-        .find({ isActive: true })
+        .find(filter)
         .populate('user', 'name email')
         .skip(skip)
         .limit(limit),
-      this.doctorModel.countDocuments({ isActive: true }),
+      this.doctorModel.countDocuments(filter),
     ]);
 
     return {
@@ -43,13 +45,27 @@ export class DoctorsService {
 
   async findOne(id: string): Promise<DoctorDocument> {
     if (!isValidObjectId(id)) throw new BadRequestException('Invalid doctor ID');
-    const doctor = await this.doctorModel.findById(id).populate('user', 'name email');
+    const doctor = await this.doctorModel.findOne(
+      {
+        _id: id,
+        isApproved: true,
+        isActive: true
+      }
+    ).populate('user', 'name email');
     if (!doctor) throw new NotFoundException('Doctor not found');
+
     return doctor;
   }
 
+  async findOneForAdmin(id:string):Promise<DoctorDocument>{
+    const doctor=await this.doctorModel.findById(id).populate('user ,name email');
+    if(!doctor) throw new NotFoundException('Doctor not found');
+    return doctor;
+
+  }
+
   async findByUser(userId: string): Promise<DoctorDocument> {
-    const doctor = await this.doctorModel.findOne({ user: userId }).populate('user', 'name email');
+    const doctor = await this.doctorModel.findOne({ user: userId, isActive: true, isApproved: true }).populate('user', 'name email');
     if (!doctor) throw new NotFoundException('Doctor not found');
     return doctor;
   }
@@ -59,5 +75,15 @@ export class DoctorsService {
     const doctor = await this.doctorModel.findByIdAndUpdate(id, dto, { new: true });
     if (!doctor) throw new NotFoundException('Doctor not found');
     return doctor;
+  }
+
+  async approveDoctor(id: string): Promise<DoctorDocument> {
+    const doctor = await this.doctorModel.findByIdAndUpdate(id,
+      { isApproved: true },
+      { new: true }
+    )
+    if (!doctor) throw new NotFoundException('Docotr Not Found');
+    return doctor;
+
   }
 }

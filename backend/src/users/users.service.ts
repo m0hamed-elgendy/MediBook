@@ -46,4 +46,47 @@ export class UsersService {
 
   }
 
+
+
+async findAll(filters: {
+  role?: string;
+  isActive?: boolean;
+  page?: number;
+  limit?: number;
+}) {
+  const { role, isActive, page = 1, limit = 2 } = filters;
+  const skip = (page - 1) * limit;
+
+  const filter: any = {};
+  if (role) filter.role = role;
+  if (isActive !== undefined) filter.isActive = isActive;
+
+  const [data, total] = await Promise.all([
+    this.userModel
+      .find(filter)
+      .select('-password -refreshToken')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }),
+    this.userModel.countDocuments(filter),
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+async suspend(id: string): Promise<UserDocument> {
+  const user = await this.userModel.findByIdAndUpdate(
+    id,
+    { isActive: false },
+    { new: true },
+  );
+  if (!user) throw new NotFoundException('User not found');
+  return user;
+}
+
 }

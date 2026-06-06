@@ -17,8 +17,8 @@ export class DoctorsController {
     }
 
     @Get()
-    @UseGuards(JwtAuthGuard,new RolesGuard(['admin']))
-    findAll(@Query() pagination:PaginationDto){
+    @UseGuards(JwtAuthGuard, new RolesGuard(['admin']))
+    findAll(@Query() pagination: PaginationDto) {
         return this.doctorServices.findAll(pagination);
     }
 
@@ -34,9 +34,21 @@ export class DoctorsController {
     }
     @Patch(':id')
     @HttpCode(HttpStatus.ACCEPTED)
-     @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
-     update(@Param('id') id: string, @Body() dto: Partial<CreateDoctorDto>) {
-       return this.doctorServices.update(id, dto);
-     }
+    @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
+    update(@Param('id') id: string, @Body() dto: Partial<CreateDoctorDto>) {
+        return this.doctorServices.update(id, dto);
+    }
+
+    @Patch(':id/approve')
+    @UseGuards(JwtAuthGuard, new RolesGuard(['admin']))
+    approveDoctor(@Param('id') id: string) {
+        return this.doctorServices.approveDoctor(id);
+    }
+
+    @Get(':id/admin')
+    @UseGuards(JwtAuthGuard, new RolesGuard(['admin']))
+    findOneForAdmin(@Param('id') id: string) {
+        return this.doctorServices.findOneForAdmin(id);
+    }
 
 }

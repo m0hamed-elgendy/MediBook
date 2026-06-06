@@ -52,12 +52,14 @@ export class Doctor {
 
 
      @Prop({min:0,type:Number})
-     averageRating:number
+     averageRating?:number
+
      
      @Prop({min:0,type:Number})
      reviewsCount?:number
 
-
+    @Prop({ default: false })
+    isApproved!: boolean;
 
 
 
