@@ -9,7 +9,6 @@ export enum AppointmentStatus {
     CANCELLED = 'cancelled',
     COMPLETED = 'completed',
 }
-
 @Schema({ timestamps: true })
 export class Appointment {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
@@ -29,8 +28,6 @@ export class Appointment {
 
     @Prop()
     notes?: string;
-
-
 }
 
 export const appointmentSchema = SchemaFactory.createForClass(Appointment)

@@ -4,12 +4,13 @@ import { Model, isValidObjectId } from 'mongoose';
 import { Doctor, DoctorDocument } from './doctor.schema';
 import { CreateDoctorDto } from './create-doctor.dto';
 import { PaginationDto } from 'src/common/pagination.dto';
-import { UserDocument } from 'src/users/user.schema';
+import { appiontmentDocument, Appointment } from 'src/appointments/appointment.schema';
 
 @Injectable()
 export class DoctorsService {
   constructor(
     @InjectModel(Doctor.name) private doctorModel: Model<DoctorDocument>,
+    @InjectModel(Appointment.name) private appointmentModel:Model<appiontmentDocument>
   ) { }
 
   async create(userId: string, dto: CreateDoctorDto): Promise<DoctorDocument> {
@@ -84,6 +85,6 @@ export class DoctorsService {
     )
     if (!doctor) throw new NotFoundException('Docotr Not Found');
     return doctor;
-
   }
+  
 }

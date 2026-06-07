@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Doctor } from 'src/doctors/doctor.schema';
 import { appiontmentDocument, Appointment, AppointmentStatus } from './appointment.schema';
 import { Model } from 'mongoose';
 import { CreateAppointmentDto } from './Dto/create-appointment.dto';
