@@ -28,6 +28,13 @@ export class DoctorsController {
         return this.doctorServices.findByUser(req.user._id)
     }
 
+    @Get('dashboard')
+    @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
+    getDoctorDashboard(@Request() req) {
+        return this.doctorServices.getDoctorDashboard(req.user._id)
+    }
+
+
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.doctorServices.findOne(id);
@@ -50,5 +57,33 @@ export class DoctorsController {
     findOneForAdmin(@Param('id') id: string) {
         return this.doctorServices.findOneForAdmin(id);
     }
+
+
+    @Get('dashboard/today')
+    @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
+    getTodaySchedule(@Request() req) {
+        return this.doctorServices.getTodaySchedule(req.user._id);
+    }
+
+    @Get('dashboard/reviews')
+    @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
+    getRecentReviews(@Request() req) {
+        return this.doctorServices.getRecentReviews(req.user._id);
+    }
+
+    @Get('dashboard/monthly')
+    @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
+    getMonthlyAppointments(@Request() req) {
+        return this.doctorServices.getMonthlyAppointments(req.user._id);
+    }
+
+    @Get('dashboard/status')
+    @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
+    getAppointmentStatusDistribution(@Request() req) {
+        return this.doctorServices.getAppointmentStatusDistribution(req.user._id);
+    }
+
+
+
 
 }
