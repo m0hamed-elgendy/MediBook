@@ -1,38 +1,51 @@
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 import { FcGoogle } from 'react-icons/fc'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import authServices from '../../services/auth.service'
+import { useAuth } from '../../context/AuthContext'
 
 const LoginForm = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [errors, setErrors] = useState({})
+    const [loading, setLoading] = useState(false);
+    const { login } = useAuth()
+    const navigate = useNavigate()
+    const [error, setError] = useState('')
 
-    const handleSubmit = (e) => {
+
+
+    const handleSubmit = async (e) => {
         e.preventDefault()
 
         const newErrors = {}
-
-        if (!email.trim()) {
-            newErrors.email = 'Email is required'
-        }
-
-        if (!password.trim()) {
-            newErrors.password = 'Password is required'
-        }
-
+        if (!email.trim()) newErrors.email = 'Email is required'
+        if (!password.trim()) newErrors.password = 'Password is required'
         if (Object.keys(newErrors).length) {
             setErrors(newErrors)
             return
         }
+        try {
+            setLoading(true)
+            setErrors({})
 
-        setErrors({})
+            const data = await authServices.Login({ email, password });
+            login(data.user, data.token.accessToken)
 
-        console.log({
-            email,
-            password,
-        })
+            if (data.user.role === 'admin') navigate('/admin/dashboard')
+            else if (data.user.role === 'doctor') navigate('/doctor/dashboard')
+            else navigate('/patient/dashboard')
+
+        }
+        catch (err) {
+            setError(err.response?.data?.message || 'Something went wrong')
+        } finally {
+            setLoading(false)
+        }
+
+
     }
 
     return (
