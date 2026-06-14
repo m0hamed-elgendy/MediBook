@@ -1,4 +1,4 @@
-import { createContext, useState ,useContext} from "react";
+import { createContext, useState, useContext } from "react";
 
 const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
@@ -7,7 +7,7 @@ export function AuthProvider({ children }) {
     )
 
     const [token, setToken] = useState(
-        JSON.parse(localStorage.getItem('token')) || null
+        localStorage.getItem('token') || null
     )
 
     const login = (userData, accessToken) => {

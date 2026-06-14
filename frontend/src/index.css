@@ -13,3 +13,44 @@
     --text-gray: #6B7280;
     --border: #E5E7EB;
 }
+
+.pulse-dot {
+    fill: #ef4444;
+    animation: heartbeat 1s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+    0% {
+        r: 6;
+        filter: drop-shadow(0 0 0px #ef4444);
+    }
+
+    50% {
+        r: 10;
+        filter: drop-shadow(0 0 15px #ef4444);
+    }
+
+    100% {
+        r: 6;
+        filter: drop-shadow(0 0 0px #ef4444);
+    }
+}
+
+.doctor-icon {
+    animation: doctorPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes doctorPulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 10px #2563eb);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}

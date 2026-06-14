@@ -2,7 +2,7 @@ import api from './api'
 const authServices = {
     Login: async (data) => {
         const response = await api.post('/auth/login', data)
-        return response
+        return response.data
     },
     register: async (data) => {
         const response = await api.post('/auth/register', data)
