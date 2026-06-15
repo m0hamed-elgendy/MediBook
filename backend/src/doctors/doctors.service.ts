@@ -80,14 +80,7 @@ export class DoctorsService {
     return doctor;
   }
 
-  async approveDoctor(id: string): Promise<DoctorDocument> {
-    const doctor = await this.doctorModel.findByIdAndUpdate(id,
-      { isApproved: true },
-      { new: true }
-    )
-    if (!doctor) throw new NotFoundException('Docotr Not Found');
-    return doctor;
-  }
+
 
   async getReviewStats(doctorId: string) {
     const result = await this.reviewModel.aggregate([

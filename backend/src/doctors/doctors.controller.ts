@@ -46,11 +46,7 @@ export class DoctorsController {
         return this.doctorServices.update(id, dto);
     }
 
-    @Patch(':id/approve')
-    @UseGuards(JwtAuthGuard, new RolesGuard(['admin']))
-    approveDoctor(@Param('id') id: string) {
-        return this.doctorServices.approveDoctor(id);
-    }
+
 
     @Get(':id/admin')
     @UseGuards(JwtAuthGuard, new RolesGuard(['admin']))

@@ -43,7 +43,7 @@ const RegisterForm = () => {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [error, setError] = useState()
+  const [error, setError] = useState('')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [logoError, setLogoError] = useState(false)
@@ -56,106 +56,102 @@ const RegisterForm = () => {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
 
- const handleSubmit = async (e) => {
-  e.preventDefault()
+  const handleSubmit = async (e) => {
+    e.preventDefault()
 
-  setError('')
-  setErrors({})
+    setError('')
+    setErrors({})
 
-  const newErrors = {}
+    const newErrors = {}
 
-  if (!formData.name.trim())
-    newErrors.name = 'Name is required'
+    if (!formData.name.trim())
+      newErrors.name = 'Name is required'
 
-  if (!formData.phone.trim())
-    newErrors.phone = 'Phone is required'
+    if (!formData.phone.trim())
+      newErrors.phone = 'Phone is required'
 
-  if (!formData.email.trim())
-    newErrors.email = 'Email is required'
+    if (!formData.email.trim())
+      newErrors.email = 'Email is required'
 
-  if (!formData.password.trim())
-    newErrors.password = 'Password is required'
+    if (!formData.password.trim())
+      newErrors.password = 'Password is required'
 
-  if (!formData.confirmPassword.trim())
-    newErrors.confirmPassword = 'Confirm Password is required'
+    if (!formData.confirmPassword.trim())
+      newErrors.confirmPassword = 'Confirm Password is required'
 
-  if (
-    formData.password &&
-    formData.confirmPassword &&
-    formData.password !== formData.confirmPassword
-  ) {
-    newErrors.confirmPassword = 'Passwords do not match'
-  }
-
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors)
-    return
-  }
-
-  try {
-    setLoading(true)
-
-    const data = await authServices.register({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      password: formData.password,
-      role: 'patient'
-    })
-
-    login(
-      data.user,
-      data.token.accessToken
-      
-    )
-
-    navigate(`/${data.user.role}/dashboard`, {
-      replace: true
-    })
-
-  } catch (err) {
-
-    const message = err.response?.data?.message
-
-    if (Array.isArray(message)) {
-
-      const backendErrors = {}
-
-      message.forEach(error => {
-
-        if (error.toLowerCase().includes('name'))
-          backendErrors.name = error
-
-        if (error.toLowerCase().includes('phone'))
-          backendErrors.phone = error
-
-        if (error.toLowerCase().includes('email'))
-          backendErrors.email = error
-
-        if (error.toLowerCase().includes('password'))
-          backendErrors.password = error
-
-      })
-
-      setErrors(backendErrors)
-
-    } else {
-
-      setError(message || 'Something went wrong')
-
+    if (
+      formData.password &&
+      formData.confirmPassword &&
+      formData.password !== formData.confirmPassword
+    ) {
+      newErrors.confirmPassword = 'Passwords do not match'
     }
 
-  } finally {
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
 
-    setLoading(false)
+    try {
+      setLoading(true)
 
+      const data = await authServices.register({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        role: 'patient'
+      })
+
+      login(data.user, data.token.accessToken, data.token.refreshToken)
+
+      navigate(`/${data.user.role}/dashboard`, {
+        replace: true
+      })
+
+    } catch (err) {
+
+      const message = err.response?.data?.message
+
+      if (Array.isArray(message)) {
+
+        const backendErrors = {}
+
+        message.forEach(error => {
+
+          if (error.toLowerCase().includes('name'))
+            backendErrors.name = error
+
+          if (error.toLowerCase().includes('phone'))
+            backendErrors.phone = error
+
+          if (error.toLowerCase().includes('email'))
+            backendErrors.email = error
+
+          if (error.toLowerCase().includes('password'))
+            backendErrors.password = error
+
+        })
+
+        setErrors(backendErrors)
+
+      } else {
+
+        setError(message || 'Something went wrong')
+
+      }
+
+    } finally {
+
+      setLoading(false)
+
+    }
   }
-}
 
   return (
     <form onSubmit={handleSubmit} className="auth-form">
       <div className="auth-card">
- 
+
         {/* Gradient accent line */}
         <div className="auth-card-accent"></div>
 
@@ -282,7 +278,7 @@ const RegisterForm = () => {
           {errors.confirmPassword && <p className="auth-error-text">{errors.confirmPassword}</p>}
         </div>
 
-        
+
 
         {/* Submit */}
         <button type="submit" disabled={loading} className="auth-submit-btn">
