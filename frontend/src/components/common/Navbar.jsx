@@ -32,16 +32,16 @@ const Navbar = () => {
         {/* Links */}
         <div className="hidden md:flex items-center gap-8">
           <Link to="/" className="text-gray-600 hover:text-blue-600 font-medium text-sm transition">
-            الرئيسية
+            Home
           </Link>
           <Link to="/doctors" className="text-gray-600 hover:text-blue-600 font-medium text-sm transition">
-            الأطباء
+            Doctors
           </Link>
           <Link to="/specialties" className="text-gray-600 hover:text-blue-600 font-medium text-sm transition">
-            التخصصات
+            Specialties
           </Link>
           <Link to="/about" className="text-gray-600 hover:text-blue-600 font-medium text-sm transition">
-            من نحن
+            About Us
           </Link>
         </div>
 
