@@ -1,40 +1,41 @@
 const AuthBanner = () => {
   return (
-<div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-blue-900 to-blue-500 text-white p-8 w-[45%] min-h-screen">
-      {/* Text */}
-      <div className="pt-8">
-        <h1 className="text-3xl font-bold leading-tight mb-3">
+    <div className="auth-banner">
+
+      {/* Decorative floating shapes */}
+      <div className="auth-banner-shape auth-banner-shape-1"></div>
+      <div className="auth-banner-shape auth-banner-shape-2"></div>
+      <div className="auth-banner-shape auth-banner-shape-3"></div>
+
+      {/* Content */}
+      <div className="auth-banner-content">
+
+        {/* Badge */}
+        <div className="auth-banner-badge">
+          <span className="auth-banner-badge-dot"></span>
+          <span>Trusted by 10,000+ patients</span>
+        </div>
+
+        {/* Heading */}
+        <h1 className="auth-banner-heading">
           Your Health, <br />
-          <span className="text-yellow-300">Our Priority</span>
+          <span className="auth-banner-heading-accent">Our Priority</span>
         </h1>
-        <p className="text-blue-100 text-sm leading-relaxed">
+
+        {/* Description */}
+        <p className="auth-banner-desc">
           Book appointments with trusted doctors, manage your visits, and access quality healthcare anytime, anywhere.
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white/10 rounded-xl p-3 text-center">
-          <div className="text-xl font-bold text-yellow-300">500+</div>
-          <div className="text-xs text-blue-100">Doctors</div>
-        </div>
-        <div className="bg-white/10 rounded-xl p-3 text-center">
-          <div className="text-xl font-bold text-yellow-300">50+</div>
-          <div className="text-xs text-blue-100">Specialties</div>
-        </div>
-        <div className="bg-white/10 rounded-xl p-3 text-center">
-          <div className="text-xl font-bold text-yellow-300">10K+</div>
-          <div className="text-xs text-blue-100">Bookings</div>
-        </div>
-      </div>
+     
 
       {/* Image */}
-      {/* Image */}
-      <div className="flex justify-center">
+      <div className="auth-banner-image-wrap">
         <img
           src="/images/healthcare.png"
           alt="Healthcare"
-          className="w-100 max-w-xs  object-contain rounded-2xl"
+          className="auth-banner-image"
         />
       </div>
 

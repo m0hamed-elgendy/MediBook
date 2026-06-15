@@ -27,8 +27,13 @@ export class User {
   @Prop({ default: null })
   profileImage?: string;
 
-@Prop({ type: String, default: null })
-refreshToken?: string|null;
+  @Prop({ required: true })
+  phone!: string;
+
+  @Prop({ type: String, default: null })
+  refreshToken?: string | null;
+
+
 
   @Prop({ default: true })
   isActive: boolean = true;

@@ -6,11 +6,11 @@ const authServices = {
     },
     register: async (data) => {
         const response = await api.post('/auth/register', data)
-        return response
+        return response.data
     },
     logout: async () => {
         const response = await api.post('/auth/logout')
-        return response
+        return response.data
     },
     
 

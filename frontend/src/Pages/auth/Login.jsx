@@ -3,9 +3,9 @@ import AuthBanner from '../../components/auth/AuthBanner'
 
 const Login = () => {
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-100">
+    <div className="auth-page">
       <AuthBanner />
-      <div className="flex-1 bg-white flex items-center justify-center p-8 overflow-y-auto lg:shadow-none shadow-2xl">
+      <div className="auth-form-panel">
         <LoginForm />
       </div>
     </div>
