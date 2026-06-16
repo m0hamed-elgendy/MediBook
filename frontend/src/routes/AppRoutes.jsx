@@ -7,12 +7,15 @@ import ProtectedRoute from './ProtectedRoute'
 import AdminDashboard from '../pages/admin/Dashboard'
 import DoctorDashboard from '../pages/doctor/Dashboard'
 import PatientDashoard from '../pages/patient/Dashboard'
+import PublicLayout from '../layouts/PublicLayout'
+import DoctorSearch from '../pages/patient/DoctorSearch'
+import Home from '../pages/Home'
+import ApplyDoctor from '../pages/patient/ApplyDoctor'
 
 const AppRoutes = () => {
     return (
         <Routes>
             {/* public Route */}
-            <Route path='/' element={<h1>Home</h1>} />
             <Route path="/login" element={
                 <PublicRoutes>
                     <Login />
@@ -26,18 +29,24 @@ const AppRoutes = () => {
             } />
 
             {/* admin routes */}
-            <Route element={<ProtectedRoute allwedUser={['admin']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route path='/admin/dashboard' element={<AdminDashboard />} />
             </Route>
 
             {/* doctor dashboard */}
-            <Route element={<ProtectedRoute allwedUser={'doctor'} />}>
+            <Route element={<ProtectedRoute allowedRoles={['doctor']} />}>
                 <Route path='/doctor/dashboard' element={<DoctorDashboard />} />
             </Route>
 
             {/* Patient Routes */}
             <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
                 <Route path="/patient/dashboard" element={<PatientDashoard />} />
+                <Route path="/apply-doctor" element={<ApplyDoctor />} />
+            </Route>
+
+            <Route element={<PublicLayout />}>
+                <Route path='/' element={<Home />} />
+                <Route path='/doctors' element={<DoctorSearch />} />
             </Route>
 
 

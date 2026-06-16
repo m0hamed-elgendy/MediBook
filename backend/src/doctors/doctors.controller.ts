@@ -17,9 +17,12 @@ export class DoctorsController {
     }
 
     @Get()
-    @UseGuards(JwtAuthGuard, new RolesGuard(['admin']))
-    findAll(@Query() pagination: PaginationDto) {
-        return this.doctorServices.findAll(pagination);
+    findAll(
+        @Query() pagination: PaginationDto,
+        @Query('search') search?: string,
+        @Query('specialty') specialty?: string
+    ) {
+        return this.doctorServices.findAll(pagination, search, specialty);
     }
 
     @Get('profile')

@@ -40,7 +40,7 @@ export class AuthController {
         return this.authServices.refresh(refreshToken);
     }
 
-    @Post('Logout')
+    @Post('logout')
     @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     logout(@Request() req){

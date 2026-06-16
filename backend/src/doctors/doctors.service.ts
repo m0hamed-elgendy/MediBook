@@ -19,7 +19,11 @@ export class DoctorsService {
     return this.doctorModel.create({ ...dto, user: userId });
   }
 
-  async findAll(pagination: PaginationDto): Promise<{
+  async findAll(
+    pagination: PaginationDto,
+    search?: string,
+    specialty?: string
+  ): Promise<{
     data: DoctorDocument[];
     total: number;
     page: number;
@@ -28,11 +32,29 @@ export class DoctorsService {
     const { page = 1, limit = 10 } = pagination;
     const skip = (page - 1) * limit;
 
-    const filter = { isActive: true, isApproved: true };
+    const filter: any = { isActive: true, isApproved: true };
+
+    if (specialty) {
+      filter.specialty = { $regex: new RegExp(specialty, 'i') };
+    }
+
+    if (search) {
+      const users = await this.doctorModel.db.model('User').find({
+        name: { $regex: new RegExp(search, 'i') }
+      }).select('_id');
+      const userIds = users.map(u => u._id);
+
+      filter.$or = [
+        { user: { $in: userIds } },
+        { bio: { $regex: new RegExp(search, 'i') } },
+        { symptoms: { $regex: new RegExp(search, 'i') } }
+      ];
+    }
+
     const [data, total] = await Promise.all([
       this.doctorModel
         .find(filter)
-        .populate('user', 'name email')
+        .populate('user', 'name email profileImage')
         .skip(skip)
         .limit(limit),
       this.doctorModel.countDocuments(filter),
