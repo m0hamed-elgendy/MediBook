@@ -12,7 +12,7 @@ export class Doctor {
     @Prop({ required: true })
     specialty!: string
 
-    @Prop({ required: true})
+    @Prop({ required: true })
     bio!: string
 
     @Prop({ required: true })
@@ -45,18 +45,18 @@ export class Doctor {
     })
 
     availability?: { day: string, from: string, to: string }[]
-    
+
 
     @Prop({ default: 20 })
-    sessionDuration?: number;  
+    sessionDuration?: number;
 
 
-     @Prop({min:0,type:Number})
-     averageRating?:number
+    @Prop({ min: 0, type: Number })
+    averageRating?: number
 
-     
-     @Prop({min:0,type:Number})
-     reviewsCount?:number
+
+    @Prop({ min: 0, type: Number })
+    reviewsCount?: number
 
     @Prop({ default: false })
     isApproved!: boolean;
@@ -67,4 +67,4 @@ export class Doctor {
     isActive: boolean;
 }
 
-export const DoctorSchema=SchemaFactory.createForClass(Doctor)
+export const DoctorSchema = SchemaFactory.createForClass(Doctor)

@@ -14,42 +14,12 @@ const SPECIALTIES = [
   { name: 'ENT', icon: '👂', color: 'bg-purple-50 text-purple-600 border-purple-100/50', desc: 'Ear, nose & throat' }
 ]
 
-const MOCK_DOCTORS = [
-  {
-    _id: 'mock-1',
-    user: { name: 'Dr Ahmed Hassan' },
-    specialty: 'Cardiology',
-    bio: 'Senior cardiologist with 15 years experience at Cairo Medical Center.',
-    averageRating: 4.9,
-    reviewsCount: 18,
-    consultationPrice: 300,
-    address: 'Nasr City, Cairo',
-  },
-  {
-    _id: 'mock-2',
-    user: { name: 'Dr Sara Mohamed' },
-    specialty: 'Dermatology',
-    bio: 'Specialist in clinical and cosmetic dermatology and laser procedures.',
-    averageRating: 4.8,
-    reviewsCount: 12,
-    consultationPrice: 250,
-    address: 'Dokki, Giza',
-  },
-  {
-    _id: 'mock-3',
-    user: { name: 'Dr Omar Ali' },
-    specialty: 'Orthopedics',
-    bio: 'Specialized in joint replacement, sports injuries, and advanced arthroscopy.',
-    averageRating: 4.9,
-    reviewsCount: 15,
-    consultationPrice: 350,
-    address: 'Smouha, Alexandria',
-  }
-]
+
 
 const Home = () => {
   const [doctors, setDoctors] = useState([])
   const [loading, setLoading] = useState(true)
+  const [topDoctor,setTopDoctor]=useState([])
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -60,11 +30,11 @@ const Home = () => {
           setDoctors(response.data)
         } else {
           // Fallback to beautiful mock doctors if none returned
-          setDoctors(MOCK_DOCTORS)
+          setDoctors([])
         }
       } catch (err) {
         console.error('Error fetching doctors:', err)
-        setDoctors(MOCK_DOCTORS)
+        setDoctors([])
       } finally {
         setLoading(false)
       }

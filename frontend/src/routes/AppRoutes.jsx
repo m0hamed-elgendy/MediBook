@@ -11,6 +11,7 @@ import PublicLayout from '../layouts/PublicLayout'
 import DoctorSearch from '../pages/patient/DoctorSearch'
 import Home from '../pages/Home'
 import ApplyDoctor from '../pages/patient/ApplyDoctor'
+import DoctorDetails from '../pages/patient/DoctorDetails'
 
 const AppRoutes = () => {
     return (
@@ -42,6 +43,7 @@ const AppRoutes = () => {
             <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
                 <Route path="/patient/dashboard" element={<PatientDashoard />} />
                 <Route path="/apply-doctor" element={<ApplyDoctor />} />
+                <Route path='docotor/:id' element={<DoctorDetails/>}/>
             </Route>
 
             <Route element={<PublicLayout />}>
