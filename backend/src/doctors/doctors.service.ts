@@ -76,10 +76,20 @@ export class DoctorsService {
         isApproved: true,
         isActive: true
       }
-    ).populate('user', 'name email');
+    ).populate('user', 'name email profileImage');
     if (!doctor) throw new NotFoundException('Doctor not found');
 
     return doctor;
+  }
+
+  async getBusySlots(doctorId: string, date: string): Promise<string[]> {
+    if (!isValidObjectId(doctorId)) throw new BadRequestException('Invalid doctor ID');
+    const appointments = await this.appointmentModel.find({
+      doctor: doctorId,
+      date,
+      status: { $nin: [AppointmentStatus.CANCELLED] }
+    }).select('time');
+    return appointments.map(app => app.time);
   }
 
   async findOneForAdmin(id: string): Promise<DoctorDocument> {

@@ -1,4 +1,4 @@
-import { IsDateString, IsMongoId, IsNotEmpty, IsString, Matches } from "class-validator";
+import { IsDateString, IsMongoId, IsNotEmpty, IsOptional, IsString, Matches } from "class-validator";
 
 export class CreateAppointmentDto {
     @IsNotEmpty()
@@ -15,4 +15,8 @@ export class CreateAppointmentDto {
         message: 'Time must be in hh:mm AM/PM format (e.g. 09:30 AM, 02:00 PM)',
     })
     time!:string
+
+    @IsOptional()
+    @IsString()
+    notes?: string;
 }

@@ -43,7 +43,7 @@ const AppRoutes = () => {
             <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
                 <Route path="/patient/dashboard" element={<PatientDashoard />} />
                 <Route path="/apply-doctor" element={<ApplyDoctor />} />
-                <Route path='docotor/:id' element={<DoctorDetails/>}/>
+                <Route path="doctors/:id" element={<DoctorDetails />} />
             </Route>
 
             <Route element={<PublicLayout />}>

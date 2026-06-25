@@ -6,6 +6,41 @@ import { CreateAppointmentDto } from './Dto/create-appointment.dto';
 import { AppointmentStatus } from './appointment.schema';
 import { DoctorsService } from 'src/doctors/doctors.service';
 import { PaginationDto } from 'src/common/pagination.dto';
+import { IsOptional, IsString } from 'class-validator';
+
+export class GetAppointmentsPatientQueryDto extends PaginationDto {
+    @IsOptional()
+    @IsString()
+    status?: string;
+}
+
+export class GetAppointmentsDoctorQueryDto extends PaginationDto {
+    @IsOptional()
+    @IsString()
+    status?: string;
+
+    @IsOptional()
+    @IsString()
+    date?: string;
+}
+
+export class GetAppointmentsAdminQueryDto extends PaginationDto {
+    @IsOptional()
+    @IsString()
+    status?: string;
+
+    @IsOptional()
+    @IsString()
+    date?: string;
+
+    @IsOptional()
+    @IsString()
+    doctor?: string;
+
+    @IsOptional()
+    @IsString()
+    patient?: string;
+}
 
 @Controller('appointments')
 export class AppointmentsController {
@@ -20,32 +55,27 @@ export class AppointmentsController {
 
     @Get('my')
     @UseGuards(JwtAuthGuard, new RolesGuard(['patient']))
-    findByPatient(@Request() req, @Query('status') status?: string, @Query() pagination?: PaginationDto) {
-        return this.appointmentServices.findByPatient(req.user._id, status, pagination);
+    findByPatient(@Request() req, @Query() query: GetAppointmentsPatientQueryDto) {
+        return this.appointmentServices.findByPatient(req.user._id, query.status, query);
     }
 
     @Get('doctor')
     @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
     async findByDoctor(
         @Request() req,
-        @Query('status') status?: string,
-        @Query('date') date?: string,
-        @Query() pagination?: PaginationDto,
+        @Query() query: GetAppointmentsDoctorQueryDto,
     ) {
         const doctor = await this.doctorsService.findByUser(req.user._id);
-        return this.appointmentServices.findByDoctor(doctor._id.toString(), status, date, pagination);
+        return this.appointmentServices.findByDoctor(doctor._id.toString(), query.status, query.date, query);
     }
 
     @Get()
     @UseGuards(JwtAuthGuard, new RolesGuard(['admin']))
-    findAll(
-        @Query('status') status?: string,
-        @Query('date') date?: string,
-        @Query('doctor') doctor?: string,
-        @Query('patient') patient?: string,
-        @Query() pagination?: PaginationDto,
-    ) {
-        return this.appointmentServices.findAll({ status, doctor, patient, date }, pagination);
+    findAll(@Query() query: GetAppointmentsAdminQueryDto) {
+        return this.appointmentServices.findAll(
+            { status: query.status, doctor: query.doctor, patient: query.patient, date: query.date },
+            query
+        );
     }
 
     @Patch(':id/status')

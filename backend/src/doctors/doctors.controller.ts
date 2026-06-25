@@ -4,6 +4,17 @@ import { CreateDoctorDto } from './create-doctor.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { PaginationDto } from 'src/common/pagination.dto';
+import { IsOptional, IsString } from 'class-validator';
+
+export class GetDoctorsQueryDto extends PaginationDto {
+    @IsOptional()
+    @IsString()
+    search?: string;
+
+    @IsOptional()
+    @IsString()
+    specialty?: string;
+}
 
 @Controller('doctors')
 export class DoctorsController {
@@ -17,12 +28,8 @@ export class DoctorsController {
     }
 
     @Get()
-    findAll(
-        @Query() pagination: PaginationDto,
-        @Query('search') search?: string,
-        @Query('specialty') specialty?: string
-    ) {
-        return this.doctorServices.findAll(pagination, search, specialty);
+    findAll(@Query() query: GetDoctorsQueryDto) {
+        return this.doctorServices.findAll(query, query.search, query.specialty);
     }
 
     @Get('profile')
@@ -41,6 +48,11 @@ export class DoctorsController {
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.doctorServices.findOne(id);
+    }
+
+    @Get(':id/busy')
+    getBusySlots(@Param('id') id: string, @Query('date') date: string) {
+        return this.doctorServices.getBusySlots(id, date);
     }
     @Patch(':id')
     @HttpCode(HttpStatus.ACCEPTED)
