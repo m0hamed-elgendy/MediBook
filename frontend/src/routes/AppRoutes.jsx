@@ -6,8 +6,9 @@ import PublicRoutes from './publicRoutes'
 import ProtectedRoute from './ProtectedRoute'
 import AdminDashboard from '../pages/admin/Dashboard'
 import DoctorDashboard from '../pages/doctor/Dashboard'
-import PatientDashoard from '../pages/patient/Dashboard'
+import PatientDashboard from '../pages/patient/Dashboard'
 import PublicLayout from '../layouts/PublicLayout'
+import PatientLayout from '../layouts/PatientLayout'
 import DoctorSearch from '../pages/patient/DoctorSearch'
 import Home from '../pages/Home'
 import ApplyDoctor from '../pages/patient/ApplyDoctor'
@@ -39,16 +40,19 @@ const AppRoutes = () => {
                 <Route path='/doctor/dashboard' element={<DoctorDashboard />} />
             </Route>
 
-            {/* Patient Routes */}
+            {/* Patient Routes – wrapped with PatientLayout */}
             <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
-                <Route path="/patient/dashboard" element={<PatientDashoard />} />
-                <Route path="/apply-doctor" element={<ApplyDoctor />} />
-                <Route path="doctors/:id" element={<DoctorDetails />} />
+                <Route element={<PatientLayout />}>
+                    <Route path="/patient/dashboard" element={<PatientDashboard />} />
+                    <Route path="/patient/appointments" element={<PatientDashboard />} />
+                    <Route path="/apply-doctor" element={<ApplyDoctor />} />
+                </Route>
             </Route>
 
             <Route element={<PublicLayout />}>
                 <Route path='/' element={<Home />} />
                 <Route path='/doctors' element={<DoctorSearch />} />
+                <Route path='/doctors/:id' element={<DoctorDetails />} />
             </Route>
 
 

@@ -1,251 +1,266 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { 
-    FiCalendar, FiClock, FiActivity, FiUser, 
-    FiAlertCircle, FiXCircle, FiCheckCircle, FiSearch 
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import {
+    FiCalendar, FiClock, FiSearch, FiPlusCircle,
+    FiChevronRight, FiActivity, FiFileText, FiRefreshCw
 } from 'react-icons/fi'
-import appointmentService from '../../services/appointment.service'
 import { useAuth } from '../../context/AuthContext'
+import appointmentService from '../../services/appointment.service'
+
+const statusStyles = {
+    pending: { bg: '#FFF7ED', color: '#C2410C', label: 'PENDING' },
+    confirmed: { bg: '#EFF6FF', color: '#1D4ED8', label: 'CONFIRMED' },
+    completed: { bg: '#F0FDF4', color: '#15803D', label: 'COMPLETED' },
+    cancelled: { bg: '#FEF2F2', color: '#DC2626', label: 'CANCELLED' },
+}
 
 const PatientDashboard = () => {
     const { user } = useAuth()
-    const navigate = useNavigate()
     const [appointments, setAppointments] = useState([])
     const [loading, setLoading] = useState(true)
-    const [cancellingId, setCancellingId] = useState(null)
-    const [error, setError] = useState('')
-
-    const fetchAppointments = useCallback(async () => {
-        try {
-            setLoading(true)
-            const res = await appointmentService.getByPatient({ limit: 100 })
-            setAppointments(res.data || [])
-        } catch (err) {
-            console.error('Error fetching patient appointments:', err)
-            setError('Failed to load appointments.')
-        } finally {
-            setLoading(false)
-        }
-    }, [])
 
     useEffect(() => {
+        const fetchAppointments = async () => {
+            try {
+                setLoading(true)
+                const data = await appointmentService.getByPatient()
+                setAppointments(data.data || [])
+            } catch (err) {
+                console.error(err)
+                setAppointments([])
+            } finally {
+                setLoading(false)
+            }
+        }
         fetchAppointments()
-    }, [fetchAppointments])
+    }, [])
 
-    const handleCancelAppointment = useCallback(async (id) => {
-        if (!window.confirm('Are you sure you want to cancel this appointment?')) return
-        try {
-            setCancellingId(id)
-            await appointmentService.updateStatus(id, 'cancelled')
-            // Refresh list
-            await fetchAppointments()
-        } catch (err) {
-            console.error('Error cancelling appointment:', err)
-            alert(err.response?.data?.message || 'Failed to cancel appointment')
-        } finally {
-            setCancellingId(null)
-        }
-    }, [fetchAppointments])
+    const totalAppointments = appointments.length
+    const upcoming = appointments
+        .filter(a => a.status === 'confirmed' || a.status === 'pending')
+        .sort((a, b) => new Date(a.date) - new Date(b.date))[0]
+    const completedCount = appointments.filter(a => a.status === 'completed').length
+    const firstName = user?.name?.split(' ')[0] || 'there'
 
-    // Calculate metrics
-    const stats = {
-        total: appointments.length,
-        pending: appointments.filter(a => a.status === 'pending').length,
-        confirmed: appointments.filter(a => a.status === 'confirmed').length,
-        completed: appointments.filter(a => a.status === 'completed').length,
-    }
-
-    const getStatusClass = (status) => {
-        switch (status) {
-            case 'pending': return 'bg-amber-50 text-amber-700 border-amber-100'
-            case 'confirmed': return 'bg-blue-50 text-blue-700 border-blue-100'
-            case 'completed': return 'bg-emerald-50 text-emerald-700 border-emerald-100'
-            case 'cancelled': return 'bg-rose-50 text-rose-700 border-rose-100'
-            default: return 'bg-gray-50 text-gray-700 border-gray-100'
-        }
-    }
-
-    if (loading) {
-        return (
-            <div className="max-w-7xl mx-auto px-6 py-12 animate-pulse space-y-8">
-                <div className="h-10 bg-gray-200 rounded w-1/4"></div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-24 bg-gray-200 rounded-3xl"></div>
-                    ))}
-                </div>
-                <div className="h-80 bg-gray-200 rounded-3xl"></div>
-            </div>
-        )
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '—'
+        const d = new Date(dateStr)
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     }
 
     return (
-        <div className="bg-gray-50 min-h-screen pb-16">
-            <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-                
-                {/* Welcome */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-black text-slate-900">Patient Dashboard</h1>
-                        <p className="text-slate-500 text-sm">Welcome back, {user?.name}. Manage your appointments and healthcare options here.</p>
-                    </div>
-                    <Link 
-                        to="/doctors" 
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold text-sm transition duration-300 shadow-sm flex items-center justify-center gap-2 cursor-pointer self-start"
-                    >
-                        <FiSearch size={16} />
-                        Find Doctors
-                    </Link>
+        <div className="pd-container">
+            {/* ===== Main Content Area ===== */}
+            <div className="pd-content">
+
+                {/* Welcome Header */}
+                <div className="pd-welcome">
+                    <h1 className="pd-welcome-title">Welcome back, {firstName}!</h1>
+                    <p className="pd-welcome-subtitle">
+                        {upcoming
+                            ? `Your health status is looking good. You have an upcoming appointment.`
+                            : 'Your health status is looking good. No upcoming appointments.'}
+                    </p>
                 </div>
 
-                {/* Statistics Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 bg-slate-50 text-slate-650 rounded-2xl flex items-center justify-center shrink-0">
-                            <FiActivity size={24} />
+                {/* Stats Row */}
+                <div className="pd-stats-row">
+                    <div className="pd-stat-card">
+                        <div className="pd-stat-icon-row">
+                            <span className="pd-stat-icon pd-stat-icon-blue">
+                                <FiCalendar size={18} />
+                            </span>
                         </div>
-                        <div>
-                            <span className="block text-slate-400 text-xs font-bold uppercase tracking-wider">Total Booked</span>
-                            <span className="text-2xl font-black text-slate-800">{stats.total}</span>
-                        </div>
+                        <div className="pd-stat-value pd-stat-value-blue">{totalAppointments}</div>
+                        <div className="pd-stat-label">TOTAL APPOINTMENTS</div>
                     </div>
-                    <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
-                            <FiCalendar size={24} />
+
+                    <div className="pd-stat-card">
+                        <div className="pd-stat-icon-row">
+                            <span className="pd-stat-icon pd-stat-icon-amber">
+                                <FiClock size={18} />
+                            </span>
+                            {upcoming && <span className="pd-stat-badge">In {(() => {
+                                const diff = Math.ceil((new Date(upcoming.date) - new Date()) / (1000 * 60 * 60 * 24))
+                                return diff > 0 ? `${diff} days` : 'Today'
+                            })()}</span>}
                         </div>
-                        <div>
-                            <span className="block text-amber-400 text-xs font-bold uppercase tracking-wider">Pending Approval</span>
-                            <span className="text-2xl font-black text-amber-600">{stats.pending}</span>
+                        <div className="pd-stat-value pd-stat-value-amber">
+                            {upcoming ? formatDate(upcoming.date) : '—'}
                         </div>
+                        <div className="pd-stat-label">NEXT APPOINTMENT</div>
                     </div>
-                    <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
-                            <FiClock size={24} />
+
+                    <div className="pd-stat-card">
+                        <div className="pd-stat-icon-row">
+                            <span className="pd-stat-icon pd-stat-icon-green">
+                                <FiActivity size={18} />
+                            </span>
                         </div>
-                        <div>
-                            <span className="block text-blue-400 text-xs font-bold uppercase tracking-wider">Confirmed</span>
-                            <span className="text-2xl font-black text-blue-600">{stats.confirmed}</span>
-                        </div>
-                    </div>
-                    <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
-                            <FiCheckCircle size={24} />
-                        </div>
-                        <div>
-                            <span className="block text-emerald-400 text-xs font-bold uppercase tracking-wider">Completed</span>
-                            <span className="text-2xl font-black text-emerald-600">{stats.completed}</span>
-                        </div>
+                        <div className="pd-stat-value pd-stat-value-green">{completedCount}</div>
+                        <div className="pd-stat-label">COMPLETED VISITS</div>
                     </div>
                 </div>
 
-                {/* Appointment List Card */}
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                    <div className="px-6 py-5 border-b border-slate-50 flex items-center justify-between">
-                        <h2 className="font-bold text-slate-800 text-lg">My Appointments</h2>
+                {/* Upcoming Appointment Banner */}
+                {upcoming && (
+                    <div className="pd-upcoming-banner">
+                        <div className="pd-upcoming-content">
+                            <div className="pd-upcoming-avatar">
+                                {upcoming.doctor?.user?.name?.charAt(0).toUpperCase() || 'D'}
+                            </div>
+                            <div className="pd-upcoming-info">
+                                <span className="pd-upcoming-label">UPCOMING APPOINTMENT</span>
+                                <h3 className="pd-upcoming-doctor">
+                                    Dr. {upcoming.doctor?.user?.name || 'Doctor'}
+                                </h3>
+                                <p className="pd-upcoming-meta">
+                                    {upcoming.doctor?.specialty} • {formatDate(upcoming.date)}, {upcoming.time}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="pd-upcoming-actions">
+                            <span className={`pd-upcoming-status-badge ${upcoming.status === 'confirmed' ? 'pd-badge-confirmed' : 'pd-badge-pending'}`}>
+                                {upcoming.status}
+                            </span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Appointment History */}
+                <div className="pd-history-card">
+                    <div className="pd-history-header">
+                        <h3 className="pd-history-title">Appointment History</h3>
+                        <Link to="/patient/appointments" className="pd-history-viewall">
+                            View all
+                        </Link>
                     </div>
 
-                    {error && (
-                        <div className="p-6 text-center text-red-500 flex flex-col items-center gap-2">
-                            <FiAlertCircle size={32} />
-                            <p className="font-semibold">{error}</p>
+                    {loading ? (
+                        <div className="pd-history-loading">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="pd-skeleton-row" />
+                            ))}
                         </div>
-                    )}
-
-                    {appointments.length === 0 ? (
-                        <div className="text-center py-20 px-6 space-y-4">
-                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-400">
-                                <FiCalendar size={36} />
-                            </div>
-                            <div>
-                                <h3 className="text-slate-800 font-bold text-lg">No appointments scheduled</h3>
-                                <p className="text-slate-400 text-sm max-w-sm mx-auto mt-1">Book an appointment with one of our professional medical specialists to get started.</p>
-                            </div>
-                            <Link 
-                                to="/doctors" 
-                                className="inline-flex px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl text-sm hover:bg-blue-700 transition"
-                            >
-                                Book Appointment
+                    ) : appointments.length === 0 ? (
+                        <div className="pd-history-empty">
+                            <FiCalendar size={40} />
+                            <p>No appointments yet.</p>
+                            <Link to="/doctors" className="pd-history-empty-link">
+                                Find a doctor to get started
                             </Link>
                         </div>
                     ) : (
-                        <div className="divide-y divide-slate-100">
-                            {appointments.map(app => (
-                                <div key={app._id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-slate-50/40 transition duration-300">
-                                    <div className="flex gap-4">
-                                        {/* Doctor Avatar */}
-                                        <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-650 font-extrabold text-xl flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
-                                            {app.doctor?.user?.profileImage ? (
-                                                <img src={app.doctor.user.profileImage} alt={app.doctor?.user?.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                app.doctor?.user?.name?.charAt(0).toUpperCase() || 'D'
-                                            )}
-                                        </div>
-                                        <div className="space-y-1">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h3 className="font-extrabold text-slate-800 text-base">{app.doctor?.user?.name || 'Doctor'}</h3>
-                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getStatusClass(app.status)}`}>
-                                                    {app.status}
-                                                </span>
-                                            </div>
-                                            <p className="text-blue-600 text-xs font-bold">{app.doctor?.specialty}</p>
-                                            
-                                            <div className="flex flex-wrap gap-4 text-xs text-slate-500 pt-1">
-                                                <span className="flex items-center gap-1.5">
-                                                    <FiCalendar size={14} className="text-blue-500" />
-                                                    {new Date(app.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                                                </span>
-                                                <span className="flex items-center gap-1.5">
-                                                    <FiClock size={14} className="text-blue-500" />
-                                                    {app.time}
-                                                </span>
-                                            </div>
-
-                                            {app.notes && (
-                                                <p className="text-xs text-slate-500 bg-slate-50 border border-slate-100 rounded-xl p-3 mt-2 inline-block">
-                                                    <span className="font-bold text-slate-650 block text-[10px] uppercase tracking-wider mb-1">My Notes:</span>
-                                                    {app.notes}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex gap-2 self-end md:self-center">
-                                        <Link 
-                                            to={`/doctors/${app.doctor?._id}`}
-                                            className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-50 transition"
-                                        >
-                                            View Doctor
-                                        </Link>
-                                        
-                                        {(app.status === 'pending' || app.status === 'confirmed') && (
-                                            <button
-                                                onClick={() => handleCancelAppointment(app._id)}
-                                                disabled={cancellingId === app._id}
-                                                className="px-4 py-2 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-xs font-semibold hover:bg-rose-100 transition cursor-pointer flex items-center gap-1.5"
-                                            >
-                                                <FiXCircle />
-                                                {cancellingId === app._id ? 'Cancelling...' : 'Cancel'}
-                                            </button>
-                                        )}
-                                        
-                                        {app.status === 'completed' && (
-                                            <Link
-                                                to={`/doctors/${app.doctor?._id}`}
-                                                className="px-4 py-2 bg-amber-50 border border-amber-100 text-amber-700 rounded-xl text-xs font-semibold hover:bg-amber-100 transition flex items-center gap-1.5"
-                                            >
-                                                <FiStar className="fill-amber-500 text-amber-500" />
-                                                Write Review
-                                            </Link>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="pd-history-table-wrapper">
+                            <table className="pd-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>DOCTOR</th>
+                                        <th>DATE</th>
+                                        <th>STATUS</th>
+                                        <th>ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {appointments.slice(0, 5).map(appt => {
+                                        const style = statusStyles[appt.status] || statusStyles.pending
+                                        return (
+                                            <tr key={appt._id}>
+                                                <td>
+                                                    <div className="pd-doctor-cell">
+                                                        <div
+                                                            className="pd-doctor-avatar-sm"
+                                                            style={{
+                                                                background: appt.status === 'completed' ? '#DCFCE7'
+                                                                    : appt.status === 'confirmed' ? '#DBEAFE'
+                                                                        : appt.status === 'cancelled' ? '#FEE2E2'
+                                                                            : '#FEF3C7',
+                                                                color: style.color
+                                                            }}
+                                                        >
+                                                            {appt.doctor?.user?.name?.charAt(0).toUpperCase() || 'D'}
+                                                        </div>
+                                                        <div>
+                                                            <p className="pd-doctor-name">
+                                                                Dr. {appt.doctor?.user?.name || 'Doctor'}
+                                                            </p>
+                                                            <p className="pd-doctor-specialty">
+                                                                {appt.doctor?.specialty || 'Specialist'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="pd-date-cell">
+                                                    {formatDate(appt.date)}
+                                                </td>
+                                                <td>
+                                                    <span
+                                                        className="pd-status-badge"
+                                                        style={{ background: style.bg, color: style.color }}
+                                                    >
+                                                        {style.label}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {appt.status === 'cancelled' ? (
+                                                        <button className="pd-action-btn" title="Rebook">
+                                                            <FiRefreshCw size={16} />
+                                                        </button>
+                                                    ) : (
+                                                        <button className="pd-action-btn" title="View Details">
+                                                            <FiFileText size={16} />
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
                         </div>
                     )}
                 </div>
-
             </div>
+
+            {/* ===== Right Sidebar ===== */}
+            <aside className="pd-sidebar">
+
+                {/* Quick Actions */}
+                <div className="pd-sidebar-card">
+                    <h3 className="pd-sidebar-card-title">
+                        <span className="pd-sidebar-card-title-icon">⚡</span>
+                        Quick Actions
+                    </h3>
+                    <div className="pd-quick-actions">
+                        <Link to="/doctors" className="pd-action-link pd-action-primary">
+                            <span className="pd-action-link-left">
+                                <FiPlusCircle size={18} />
+                                Book New Appointment
+                            </span>
+                            <FiChevronRight size={16} />
+                        </Link>
+                        <Link to="/doctors" className="pd-action-link pd-action-outline">
+                            <span className="pd-action-link-left">
+                                <FiSearch size={18} />
+                                Find a Specialist
+                            </span>
+                            <FiChevronRight size={16} />
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Health Tip */}
+                <div className="pd-sidebar-card pd-tip-card">
+                    <div className="pd-tip-icon">💡</div>
+                    <h4 className="pd-tip-title">Health Tip of the Day</h4>
+                    <p className="pd-tip-text">
+                        Stay hydrated! Drinking at least 8 glasses of water daily helps maintain
+                        your energy levels and improves cognitive function.
+                    </p>
+                    <a href="#" className="pd-tip-link">Learn more →</a>
+                </div>
+
+            </aside>
         </div>
     )
 }

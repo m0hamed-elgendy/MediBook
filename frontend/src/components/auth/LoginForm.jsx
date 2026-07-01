@@ -57,7 +57,7 @@ const LoginForm = () => {
             login(data.user, data.token.accessToken, data.token.refreshToken)
             if (data.user.role === 'admin') navigate('/admin/dashboard', { replace: true })
             else if (data.user.role === 'doctor') navigate('/doctor/dashboard', { replace: true })
-            else navigate('/patient/dashboard', { replace: true })
+            else navigate('/doctors', { replace: true })
         } catch (err) {
             const message = err.response?.data?.message
             if (Array.isArray(message)) {

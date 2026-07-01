@@ -105,7 +105,7 @@ const RegisterForm = () => {
 
       login(data.user, data.token.accessToken, data.token.refreshToken)
 
-      navigate(`/${data.user.role}/dashboard`, {
+      navigate('/doctors', {
         replace: true
       })
 

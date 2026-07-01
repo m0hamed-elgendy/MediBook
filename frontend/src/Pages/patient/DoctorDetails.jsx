@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { 
     FiStar, FiMapPin, FiDollarSign, FiCalendar, FiClock, 
@@ -34,6 +34,15 @@ const DoctorDetails = () => {
     const [reviewError, setReviewError] = useState('')
     const [submittingReview, setSubmittingReview] = useState(false)
     const [unreviewedAppointment, setUnreviewedAppointment] = useState(null)
+
+    // Guard ref to prevent repeated auto-scroll
+    const hasAutoScrolled = useRef(false)
+
+    // Scroll to top on mount / when doctor id changes
+    useEffect(() => {
+        window.scrollTo(0, 0)
+        hasAutoScrolled.current = false
+    }, [id])
 
     // Load doctor and reviews
     const fetchData = useCallback(async () => {
@@ -128,9 +137,11 @@ const DoctorDetails = () => {
         setSelectedTime('')
     }, [selectedDate, id])
 
-    // Trigger auto-focus scroll to book container if '?book=true' parameter is present
+    // Trigger auto-focus scroll to book container if '?book=true' parameter is present (only once)
     useEffect(() => {
+        if (hasAutoScrolled.current) return
         if (doctor && searchParams.get('book') === 'true' && dates.length > 0) {
+            hasAutoScrolled.current = true
             // Find first available date and select it
             const firstAvail = dates.find(d => d.isAvailable)
             if (firstAvail) setSelectedDate(firstAvail)
