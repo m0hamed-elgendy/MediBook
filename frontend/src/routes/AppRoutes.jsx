@@ -9,6 +9,7 @@ import DoctorDashboard from '../pages/doctor/Dashboard'
 import PatientDashboard from '../pages/patient/Dashboard'
 import PublicLayout from '../layouts/PublicLayout'
 import PatientLayout from '../layouts/PatientLayout'
+import DoctorLayout from '../layouts/DoctorLayout'
 import DoctorSearch from '../pages/patient/DoctorSearch'
 import Home from '../pages/Home'
 import ApplyDoctor from '../pages/patient/ApplyDoctor'
@@ -35,9 +36,15 @@ const AppRoutes = () => {
                 <Route path='/admin/dashboard' element={<AdminDashboard />} />
             </Route>
 
-            {/* doctor dashboard */}
+            {/* Doctor Routes – wrapped with DoctorLayout */}
             <Route element={<ProtectedRoute allowedRoles={['doctor']} />}>
-                <Route path='/doctor/dashboard' element={<DoctorDashboard />} />
+                <Route element={<DoctorLayout />}>
+                    <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+                    <Route path="/doctor/schedule" element={<DoctorDashboard />} />
+                    <Route path="/doctor/appointments" element={<DoctorDashboard />} />
+                    <Route path="/doctor/reviews" element={<DoctorDashboard />} />
+                    <Route path="/doctor/profile" element={<DoctorDashboard />} />
+                </Route>
             </Route>
 
             {/* Patient Routes – wrapped with PatientLayout */}
