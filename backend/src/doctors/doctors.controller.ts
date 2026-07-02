@@ -44,32 +44,6 @@ export class DoctorsController {
         return this.doctorServices.getDoctorDashboard(req.user._id)
     }
 
-
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.doctorServices.findOne(id);
-    }
-
-    @Get(':id/busy')
-    getBusySlots(@Param('id') id: string, @Query('date') date: string) {
-        return this.doctorServices.getBusySlots(id, date);
-    }
-    @Patch(':id')
-    @HttpCode(HttpStatus.ACCEPTED)
-    @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
-    update(@Param('id') id: string, @Body() dto: Partial<CreateDoctorDto>) {
-        return this.doctorServices.update(id, dto);
-    }
-
-
-
-    @Get(':id/admin')
-    @UseGuards(JwtAuthGuard, new RolesGuard(['admin']))
-    findOneForAdmin(@Param('id') id: string) {
-        return this.doctorServices.findOneForAdmin(id);
-    }
-
-
     @Get('dashboard/today')
     @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
     getTodaySchedule(@Request() req) {
@@ -94,7 +68,27 @@ export class DoctorsController {
         return this.doctorServices.getAppointmentStatusDistribution(req.user._id);
     }
 
+    @Get(':id')
+    findOne(@Param('id') id: string) {
+        return this.doctorServices.findOne(id);
+    }
 
+    @Get(':id/busy')
+    getBusySlots(@Param('id') id: string, @Query('date') date: string) {
+        return this.doctorServices.getBusySlots(id, date);
+    }
 
+    @Patch(':id')
+    @HttpCode(HttpStatus.ACCEPTED)
+    @UseGuards(JwtAuthGuard, new RolesGuard(['doctor']))
+    update(@Param('id') id: string, @Body() dto: Partial<CreateDoctorDto>) {
+        return this.doctorServices.update(id, dto);
+    }
 
+    @Get(':id/admin')
+    @UseGuards(JwtAuthGuard, new RolesGuard(['admin']))
+    findOneForAdmin(@Param('id') id: string) {
+        return this.doctorServices.findOneForAdmin(id);
+    }
 }
+

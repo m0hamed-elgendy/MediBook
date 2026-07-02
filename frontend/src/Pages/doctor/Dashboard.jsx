@@ -31,11 +31,13 @@ const DoctorDashboard = () => {
     const [monthly, setMonthly] = useState([])
     const [statusDist, setStatusDist] = useState([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
 
     useEffect(() => {
         const fetchAll = async () => {
             try {
                 setLoading(true)
+                setError('')
                 const [statsData, todayData, reviewsData, monthlyData, statusData] = await Promise.all([
                     doctorService.getDashboard(),
                     doctorService.getTodaySchedule(),
@@ -50,6 +52,7 @@ const DoctorDashboard = () => {
                 setStatusDist(statusData || [])
             } catch (err) {
                 console.error(err)
+                setError(err.response?.data?.message || 'Failed to fetch dashboard statistics')
             } finally {
                 setLoading(false)
             }
@@ -96,6 +99,26 @@ const DoctorDashboard = () => {
 
     return (
         <div className="dd-container">
+
+            {/* Error Banner */}
+            {error && (
+                <div style={{
+                    padding: '16px 24px',
+                    background: '#FEF2F2',
+                    border: '1px solid #FECACA',
+                    borderRadius: '12px',
+                    color: '#DC2626',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    marginBottom: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                }}>
+                    <FiClock size={18} />
+                    {error}
+                </div>
+            )}
 
             {/* ===== Stats Row ===== */}
             <div className="dd-stats-row">
