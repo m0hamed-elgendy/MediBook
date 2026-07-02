@@ -10,6 +10,7 @@ import PatientDashboard from '../pages/patient/Dashboard'
 import PublicLayout from '../layouts/PublicLayout'
 import PatientLayout from '../layouts/PatientLayout'
 import DoctorLayout from '../layouts/DoctorLayout'
+import AdminLayout from '../layouts/AdminLayout'
 import DoctorSearch from '../pages/patient/DoctorSearch'
 import Home from '../pages/Home'
 import ApplyDoctor from '../pages/patient/ApplyDoctor'
@@ -33,7 +34,9 @@ const AppRoutes = () => {
 
             {/* admin routes */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                <Route path='/admin/dashboard' element={<AdminDashboard />} />
+                <Route element={<AdminLayout />}>
+                    <Route path='/admin/dashboard' element={<AdminDashboard />} />
+                </Route>
             </Route>
 
             {/* Doctor Routes – wrapped with DoctorLayout */}

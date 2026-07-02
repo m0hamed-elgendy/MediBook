@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import './index.css'
+import './styles/patient.css'
+import './styles/doctor.css'
+import './styles/admin.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 
