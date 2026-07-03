@@ -52,7 +52,6 @@ const LoginForm = () => {
         try {
             setLoading(true)
             setErrors({})
-            await new Promise(resolve => setTimeout(resolve, 3000))
             const data = await authServices.Login({ email, password })
             login(data.user, data.token.accessToken, data.token.refreshToken)
             if (data.user.role === 'admin') navigate('/admin/dashboard', { replace: true })
