@@ -11,6 +11,16 @@ const doctorService = {
         return response.data
     },
 
+    getProfile: async () => {
+        const response = await api.get('/doctors/profile')
+        return response.data
+    },
+
+    update: async (id, data) => {
+        const response = await api.patch(`/doctors/${id}`, data)
+        return response.data
+    },
+
     getDashboard: async () => {
         const response = await api.get('/doctors/dashboard')
         return response.data
