@@ -1298,11 +1298,19 @@
 }
 
 @media (max-width: 1024px) {
+    .admin-layout-content {
+        padding: 24px;
+    }
+
     .admin-stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 
     .admin-charts-row {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-bottom-row {
         grid-template-columns: 1fr;
     }
 
@@ -1317,16 +1325,29 @@
 
 @media (max-width: 768px) {
     .admin-layout-content {
-        padding: 20px;
+        padding: 16px;
+    }
+
+    .admin-header {
+        padding: 0 16px;
     }
 
     .admin-stats-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .admin-charts-row {
+        gap: 12px;
+    }
+
+    .admin-bottom-row {
+        gap: 12px;
     }
 
     .admin-dashboard-header {
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
     }
 
     .admin-header-search {
@@ -1343,6 +1364,32 @@
 
     .admin-specialty-wrapper {
         flex-direction: column;
+    }
+
+    .admin-stat-card {
+        padding: 18px;
+    }
+
+    .admin-chart-card {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-layout-content {
+        padding: 12px;
+    }
+
+    .admin-header {
+        padding: 0 12px;
+    }
+
+    .admin-dashboard-title {
+        font-size: 22px;
+    }
+
+    .admin-stat-value {
+        font-size: 24px;
     }
 }
 
