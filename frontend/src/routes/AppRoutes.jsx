@@ -5,6 +5,12 @@ import Register from '../pages/auth/Register'
 import PublicRoutes from './publicRoutes'
 import ProtectedRoute from './ProtectedRoute'
 import AdminDashboard from '../pages/admin/Dashboard'
+import Users from '../pages/admin/Users'
+import Doctors from '../pages/admin/Doctors'
+import DoctorApplications from '../pages/admin/DoctorApplications'
+import Appointments from '../pages/admin/Appointments'
+import Reviews from '../pages/admin/Reviews'
+import Settings from '../pages/admin/Settings'
 import DoctorDashboard from '../pages/doctor/Dashboard'
 import PatientDashboard from '../pages/patient/Dashboard'
 import PublicLayout from '../layouts/PublicLayout'
@@ -35,12 +41,13 @@ const AppRoutes = () => {
             {/* admin routes */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route element={<AdminLayout />}>
-
-                    <Route
-                        path="/admin/dashboard"
-                        element={<AdminDashboard />}
-                    />
-
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/admin/users" element={<Users />} />
+                    <Route path="/admin/doctors" element={<Doctors />} />
+                    <Route path="/admin/applications" element={<DoctorApplications />} />
+                    <Route path="/admin/appointments" element={<Appointments />} />
+                    <Route path="/admin/reviews" element={<Reviews />} />
+                    <Route path="/admin/settings" element={<Settings />} />
                 </Route>
             </Route>
 
