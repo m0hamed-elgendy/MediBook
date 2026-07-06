@@ -16,11 +16,6 @@ const reviewService = {
         return response.data
     },
 
-    getMyReviews: async (params = {}) => {
-        const response = await api.get('/reviews/my-reviews', { params })
-        return response.data
-    },
-
     getDoctorOwnReviews: async (params = {}) => {
         const response = await api.get('/reviews/my-rating', { params })
         return response.data
@@ -31,6 +26,11 @@ const reviewService = {
         return response.data
     },
 
+    getMyReviews: async (params = {}) => {
+        const response = await api.get('/reviews/my-reviews', { params })
+        return response.data
+    },
+
     updateReview: async (id, data) => {
         const response = await api.patch(`/reviews/${id}`, data)
         return response.data
@@ -38,7 +38,7 @@ const reviewService = {
 
     deleteReview: async (id) => {
         const response = await api.delete(`/reviews/${id}`)
-        return response.data
+        return response?.data
     }
 }
 
