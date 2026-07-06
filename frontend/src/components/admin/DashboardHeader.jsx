@@ -10,27 +10,27 @@ const DashboardHeader = () => {
     })
 
     return (
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div className="admin-dashboard-header">
 
             <div>
 
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="admin-dashboard-title">
                     Dashboard
                 </h1>
 
-                <p className="text-gray-500 mt-2">
-                    Welcome back, Admin 👋
+                <p className="admin-dashboard-subtitle">
+                    Welcome back, Admin! Here's what's happening with your platform today.
                 </p>
 
             </div>
 
-            <div className="flex items-center gap-2 mt-4 md:mt-0 bg-white px-4 py-2 rounded-xl shadow-sm border">
+            <div className="admin-date-badge">
 
                 <HiOutlineCalendarDays
-                    className="text-blue-600 text-xl"
+                    className="admin-date-icon"
                 />
 
-                <span className="text-gray-700 font-medium">
+                <span className="admin-date-text">
                     {today}
                 </span>
 
