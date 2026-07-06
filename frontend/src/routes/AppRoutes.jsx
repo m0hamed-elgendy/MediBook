@@ -17,6 +17,8 @@ import DoctorReviews from '../pages/doctor/Reviews'
 import DoctorSchedule from '../pages/doctor/Schedule'
 import DoctorProfile from '../pages/doctor/Profile'
 import PatientDashboard from '../pages/patient/Dashboard'
+import MyAppointments from '../pages/patient/MyAppointments'
+import PatientProfile from '../pages/patient/Profile'
 import PublicLayout from '../layouts/PublicLayout'
 import PatientLayout from '../layouts/PatientLayout'
 import DoctorLayout from '../layouts/DoctorLayout'
@@ -70,7 +72,8 @@ const AppRoutes = () => {
             <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
                 <Route element={<PatientLayout />}>
                     <Route path="/patient/dashboard" element={<PatientDashboard />} />
-                    <Route path="/patient/appointments" element={<PatientDashboard />} />
+                    <Route path="/patient/appointments" element={<MyAppointments />} />
+                    <Route path="/patient/settings" element={<PatientProfile />} />
                     <Route path="/apply-doctor" element={<ApplyDoctor />} />
                 </Route>
             </Route>
