@@ -119,16 +119,16 @@ const Appointments = () => {
     ]
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="flex flex-col gap-1.5">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Appointments</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-xl font-bold text-gray-900">Appointments</h1>
+                <p className="text-sm text-gray-500 mt-1">
                     Monitor, inspect, and analyze all booked patient sessions.
                 </p>
             </div>
 
-            {/* Toolbar */}
-            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between p-4 bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-xl">
+            {/* Toolbar — always visible */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
                 <div className="flex flex-col gap-1 w-full md:max-w-xs">
                     <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Date Filter</span>
                     <input
@@ -138,7 +138,7 @@ const Appointments = () => {
                             setDate(e.target.value)
                             setCurrentPage(1)
                         }}
-                        className="px-3 py-1.5 text-xs rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm focus:outline-none focus:border-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
+                        className="px-3 py-1.5 text-xs rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm focus:outline-none focus:border-blue-500"
                     />
                 </div>
 
@@ -164,9 +164,13 @@ const Appointments = () => {
                 />
             </div>
 
-            {/* Content view */}
+            {/* Data section */}
             {error ? (
-                <ErrorState message={error} onRetry={fetchAppointments} />
+                <ErrorState
+                    title="Failed to load appointments"
+                    message="Could not fetch appointment data. The backend may be unavailable."
+                    onRetry={fetchAppointments}
+                />
             ) : !loading && appointments.length === 0 ? (
                 <EmptyState
                     title="No appointments registered"
@@ -191,7 +195,6 @@ const Appointments = () => {
                 </div>
             )}
 
-            {/* Details Modal */}
             <Modal
                 isOpen={isDetailsOpen}
                 onClose={() => setIsDetailsOpen(false)}
@@ -200,10 +203,10 @@ const Appointments = () => {
             >
                 {selectedAppt && (
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+                        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                             <div className="flex items-center gap-2">
                                 <FiCalendar className="text-blue-500" />
-                                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                                <span className="font-semibold text-gray-900">
                                     {new Date(selectedAppt.date).toLocaleDateString('en-US', {
                                         weekday: 'long',
                                         year: 'numeric',
@@ -220,31 +223,31 @@ const Appointments = () => {
                         <div className="grid grid-cols-2 gap-4 text-xs leading-normal">
                             <div>
                                 <p className="font-semibold text-gray-400 uppercase tracking-wider mb-1">Patient Details</p>
-                                <p className="text-gray-900 dark:text-gray-200 font-medium">{selectedAppt.patient?.name || 'N/A'}</p>
+                                <p className="text-gray-900 font-medium">{selectedAppt.patient?.name || 'N/A'}</p>
                                 <p className="text-gray-500">{selectedAppt.patient?.email}</p>
                             </div>
                             <div>
                                 <p className="font-semibold text-gray-400 uppercase tracking-wider mb-1">Doctor Details</p>
-                                <p className="text-gray-900 dark:text-gray-200 font-medium">Dr. {selectedAppt.doctor?.user?.name || 'N/A'}</p>
+                                <p className="text-gray-900 font-medium">Dr. {selectedAppt.doctor?.user?.name || 'N/A'}</p>
                                 <p className="text-gray-500">{selectedAppt.doctor?.specialty}</p>
                             </div>
                             <div>
                                 <p className="font-semibold text-gray-400 uppercase tracking-wider mb-1">Scheduled Time</p>
-                                <div className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
+                                <div className="flex items-center gap-1.5 text-gray-700">
                                     <FiClock />
                                     <span>{selectedAppt.time}</span>
                                 </div>
                             </div>
                             <div>
                                 <p className="font-semibold text-gray-400 uppercase tracking-wider mb-1">Consultation Price</p>
-                                <p className="text-gray-900 dark:text-gray-200 font-medium">${selectedAppt.doctor?.consultationPrice || 'N/A'}</p>
+                                <p className="text-gray-900 font-medium">{selectedAppt.doctor?.consultationPrice || 'N/A'} EGP</p>
                             </div>
                         </div>
 
                         {selectedAppt.notes && (
-                            <div className="p-3 bg-gray-50 dark:bg-gray-850 rounded-lg text-xs">
+                            <div className="p-3 bg-gray-50 rounded-lg text-xs">
                                 <p className="font-semibold text-gray-500 mb-1">Diagnosis Notes / Remarks</p>
-                                <p className="text-gray-700 dark:text-gray-300">{selectedAppt.notes}</p>
+                                <p className="text-gray-700">{selectedAppt.notes}</p>
                             </div>
                         )}
                     </div>

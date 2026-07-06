@@ -166,16 +166,16 @@ const Users = () => {
     ]
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="flex flex-col gap-1.5">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Users</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-xl font-bold text-gray-900">Users</h1>
+                <p className="text-sm text-gray-500 mt-1">
                     Manage patient, doctor, and admin system accounts.
                 </p>
             </div>
 
-            {/* Toolbar */}
-            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between p-4 bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-xl">
+            {/* Toolbar — always visible */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
                 <form onSubmit={handleSearchSubmit} className="w-full md:max-w-xs flex gap-2">
                     <SearchInput
                         value={search}
@@ -219,9 +219,13 @@ const Users = () => {
                 />
             </div>
 
-            {/* Error / Empty / Data view */}
+            {/* Data section — error replaces only the table area */}
             {error ? (
-                <ErrorState message={error} onRetry={fetchUsers} />
+                <ErrorState
+                    title="Failed to load users"
+                    message="Could not fetch user data. The backend may be unavailable."
+                    onRetry={fetchUsers}
+                />
             ) : !loading && users.length === 0 ? (
                 <EmptyState
                     title="No users match the criteria"
@@ -246,7 +250,6 @@ const Users = () => {
                 </div>
             )}
 
-            {/* Details Modal */}
             <Modal
                 isOpen={isDetailsOpen}
                 onClose={() => setIsDetailsOpen(false)}
@@ -255,11 +258,11 @@ const Users = () => {
             >
                 {selectedUser && (
                     <div className="space-y-6">
-                        <div className="flex items-center gap-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+                        <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
                             <Avatar src={selectedUser.profileImage} name={selectedUser.name} size="lg" />
                             <div>
-                                <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">{selectedUser.name}</h3>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{selectedUser.email}</p>
+                                <h3 className="text-base font-bold text-gray-900">{selectedUser.name}</h3>
+                                <p className="text-xs text-gray-500">{selectedUser.email}</p>
                                 <div className="flex gap-2 mt-2">
                                     <Badge variant={selectedUser.role === 'admin' ? 'danger' : selectedUser.role === 'doctor' ? 'primary' : 'neutral'}>
                                         {selectedUser.role}
@@ -273,16 +276,16 @@ const Users = () => {
 
                         <div className="grid grid-cols-2 gap-4 text-xs">
                             <div>
-                                <p className="font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">User ID</p>
-                                <p className="text-gray-850 dark:text-gray-200">{selectedUser._id}</p>
+                                <p className="font-semibold text-gray-400 uppercase tracking-wider mb-1">User ID</p>
+                                <p className="text-gray-800 font-medium">{selectedUser._id}</p>
                             </div>
                             <div>
-                                <p className="font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Phone</p>
-                                <p className="text-gray-850 dark:text-gray-200">{selectedUser.phone || 'N/A'}</p>
+                                <p className="font-semibold text-gray-400 uppercase tracking-wider mb-1">Phone</p>
+                                <p className="text-gray-800 font-medium">{selectedUser.phone || 'N/A'}</p>
                             </div>
                             <div>
-                                <p className="font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Registration Date</p>
-                                <p className="text-gray-850 dark:text-gray-200">
+                                <p className="font-semibold text-gray-400 uppercase tracking-wider mb-1">Registration Date</p>
+                                <p className="text-gray-800 font-medium">
                                     {new Date(selectedUser.createdAt).toLocaleDateString('en-US', {
                                         weekday: 'long',
                                         year: 'numeric',
@@ -292,8 +295,8 @@ const Users = () => {
                                 </p>
                             </div>
                             <div>
-                                <p className="font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Last Update</p>
-                                <p className="text-gray-850 dark:text-gray-200">
+                                <p className="font-semibold text-gray-400 uppercase tracking-wider mb-1">Last Update</p>
+                                <p className="text-gray-800 font-medium">
                                     {new Date(selectedUser.updatedAt).toLocaleDateString('en-US', {
                                         year: 'numeric',
                                         month: 'long',
@@ -306,7 +309,6 @@ const Users = () => {
                 )}
             </Modal>
 
-            {/* Suspend Confirmation Modal */}
             <Modal
                 isOpen={!!userToSuspend}
                 onClose={() => setUserToSuspend(null)}
@@ -330,10 +332,10 @@ const Users = () => {
             >
                 {userToSuspend && (
                     <div className="space-y-3">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-gray-600">
                             Are you sure you want to suspend <strong>{userToSuspend.name}</strong>?
                         </p>
-                        <p className="text-xs text-red-500 font-medium">
+                        <p className="text-xs font-medium text-red-500">
                             The user will no longer be able to log in or book appointments.
                         </p>
                     </div>

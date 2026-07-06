@@ -167,16 +167,21 @@ const DoctorApplications = () => {
     ]
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="flex flex-col gap-1.5">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Doctor Applications</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-xl font-bold text-gray-900">Doctor Applications</h1>
+                <p className="text-sm text-gray-500 mt-1">
                     Review and process verification applications from new doctors.
                 </p>
             </div>
 
+            {/* Data section — error replaces only the table area */}
             {error ? (
-                <ErrorState message={error} onRetry={fetchApplications} />
+                <ErrorState
+                    title="Failed to load applications"
+                    message="Could not fetch doctor applications. The backend may be unavailable."
+                    onRetry={fetchApplications}
+                />
             ) : !loading && applications.length === 0 ? (
                 <EmptyState
                     title="No applications registered"
@@ -192,7 +197,6 @@ const DoctorApplications = () => {
                 />
             )}
 
-            {/* Details Modal */}
             <Modal
                 isOpen={isDetailsOpen}
                 onClose={() => setIsDetailsOpen(false)}
@@ -201,11 +205,11 @@ const DoctorApplications = () => {
             >
                 {selectedApp && (
                     <div className="space-y-6">
-                        <div className="flex items-center gap-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+                        <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
                             <Avatar name={selectedApp.user?.name} size="lg" />
                             <div>
-                                <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">{selectedApp.user?.name}</h3>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">Specialization: {selectedApp.specialty}</p>
+                                <h3 className="text-base font-bold text-gray-900">{selectedApp.user?.name}</h3>
+                                <p className="text-xs text-gray-500">Specialization: {selectedApp.specialty}</p>
                                 <div className="flex gap-2 mt-2">
                                     <Badge variant={selectedApp.status === 'pending' ? 'pending' : selectedApp.status === 'approved' ? 'success' : 'cancelled'}>
                                         Status: {selectedApp.status}
@@ -217,7 +221,7 @@ const DoctorApplications = () => {
                         <div className="space-y-3">
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">License Image / Document</p>
                             {selectedApp.licenseImage ? (
-                                <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden max-h-[350px] bg-slate-50 flex items-center justify-center">
+                                <div className="border border-gray-200 rounded-lg overflow-hidden max-h-[350px] bg-slate-50 flex items-center justify-center">
                                     <img
                                         src={selectedApp.licenseImage}
                                         alt="Doctor License"
@@ -230,14 +234,14 @@ const DoctorApplications = () => {
                         </div>
 
                         {selectedApp.status === 'rejected' && selectedApp.rejectionReason && (
-                            <div className="p-3.5 bg-red-50/50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/30 rounded-lg text-xs">
-                                <p className="font-bold text-red-700 dark:text-red-400 mb-1">Rejection Reason</p>
-                                <p className="text-red-600 dark:text-red-400 leading-normal">{selectedApp.rejectionReason}</p>
+                            <div className="p-3.5 bg-red-50/50 border border-red-100 rounded-lg text-xs">
+                                <p className="font-bold text-red-700 mb-1">Rejection Reason</p>
+                                <p className="text-red-600 leading-normal">{selectedApp.rejectionReason}</p>
                             </div>
                         )}
 
                         {selectedApp.status === 'pending' && (
-                            <div className="flex items-center justify-end gap-3 border-t border-gray-100 dark:border-gray-800 pt-4">
+                            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                                 <Button
                                     variant="danger"
                                     size="sm"
@@ -259,7 +263,6 @@ const DoctorApplications = () => {
                 )}
             </Modal>
 
-            {/* Approval Modal */}
             <Modal
                 isOpen={!!appToApprove}
                 onClose={() => setAppToApprove(null)}
@@ -283,7 +286,7 @@ const DoctorApplications = () => {
             >
                 {appToApprove && (
                     <div className="space-y-2">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-gray-600">
                             Confirm credentials approval for <strong>{appToApprove.user?.name}</strong>.
                         </p>
                         <p className="text-xs text-gray-500">
@@ -293,7 +296,6 @@ const DoctorApplications = () => {
                 )}
             </Modal>
 
-            {/* Rejection Reason Modal */}
             <Modal
                 isOpen={!!appToReject}
                 onClose={() => {
@@ -336,7 +338,7 @@ const DoctorApplications = () => {
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
                             placeholder="Type a message to explain the decision (required)..."
-                            className="w-full min-h-[80px] p-3 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                            className="w-full min-h-[80px] p-3 text-xs rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
                         />
                     </div>
                 )}

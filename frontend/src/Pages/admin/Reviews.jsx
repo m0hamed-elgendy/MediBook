@@ -172,25 +172,25 @@ const Reviews = () => {
     ]
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="flex flex-col gap-1.5">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Reviews</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-xl font-bold text-gray-900">Reviews</h1>
+                <p className="text-sm text-gray-500 mt-1">
                     Inspect patient feedback and ratings organized by doctor.
                 </p>
             </div>
 
-            {/* Select Doctor Toolbar */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-xl">
+            {/* Select Doctor Toolbar — always visible */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1.5 w-full max-w-sm">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Select Doctor</label>
                     {loadingDoctors ? (
-                        <div className="h-9 bg-gray-100 dark:bg-gray-850 rounded animate-pulse" />
+                        <div className="h-9 bg-gray-100 rounded animate-pulse" />
                     ) : (
                         <select
                             value={selectedDoctorId}
                             onChange={(e) => setSelectedDoctorId(e.target.value)}
-                            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none focus:border-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200"
+                            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none focus:border-blue-500"
                         >
                             {doctors.map(doc => (
                                 <option key={doc._id} value={doc._id}>
@@ -208,9 +208,13 @@ const Reviews = () => {
                 )}
             </div>
 
-            {/* Reviews view */}
+            {/* Reviews section — error replaces only the table */}
             {error ? (
-                <ErrorState message={error} onRetry={fetchReviews} />
+                <ErrorState
+                    title="Failed to load reviews"
+                    message="Could not fetch reviews for the selected doctor."
+                    onRetry={fetchReviews}
+                />
             ) : !loadingReviews && reviews.length === 0 ? (
                 <EmptyState
                     title="No reviews listed"
@@ -233,7 +237,6 @@ const Reviews = () => {
                 </div>
             )}
 
-            {/* Delete Confirmation Modal */}
             <Modal
                 isOpen={!!reviewToDelete}
                 onClose={() => setReviewToDelete(null)}
@@ -257,11 +260,11 @@ const Reviews = () => {
             >
                 {reviewToDelete && (
                     <div className="space-y-3">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-gray-600">
                             Are you sure you want to remove the review written by <strong>{reviewToDelete.patient?.name || 'Anonymous'}</strong>?
                         </p>
-                        <div className="p-3 bg-gray-55 dark:bg-gray-850 rounded border border-gray-100 dark:border-gray-800 text-xs italic text-gray-500">
-                            "{reviewToDelete.comment}"
+                        <div className="p-3 bg-gray-50 rounded border border-gray-100 text-xs italic text-gray-500">
+                            &ldquo;{reviewToDelete.comment}&rdquo;
                         </div>
                     </div>
                 )}
