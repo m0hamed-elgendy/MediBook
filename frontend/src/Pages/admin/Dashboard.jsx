@@ -9,7 +9,11 @@ import MonthlyChart from '../../components/admin/dashboard/MonthlyChart'
 import UsersStatusChart from '../../components/admin/dashboard/UsersStatusChart'
 import TopDoctorsTable from '../../components/admin/dashboard/TopDoctorsTable'
 import SpecialtyChart from '../../components/admin/dashboard/SpecialtyChart'
+import RecentActivity from '../../components/admin/dashboard/RecentActivity'
+import LatestReviews from '../../components/admin/dashboard/LatestReviews'
 import adminService from '../../services/admin.service'
+import appointmentService from '../../services/appointment.service'
+import reviewService from '../../services/review.service'
 
 const STAT_CARDS_CONFIG = [
   {
@@ -62,17 +66,74 @@ const STAT_CARDS_CONFIG = [
   },
 ]
 
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchAllStats = async () => {
       try {
         setLoading(true)
-        const response = await adminService.getDashboardStats()
-        setStats(response)
+        setError('')
+
+        // Fetch counts, analytics, top doctors, specialty data, and recent appointments in parallel
+        const [statsRes, analyticsRes, topDoctorsRes, specialtyRes, recentApptsRes] = await Promise.all([
+          adminService.getDashboardStats(),
+          adminService.getAppointmentsAnalytics(),
+          adminService.getTopDoctors(),
+          adminService.getDoctorsBySpecialty(),
+          appointmentService.getAll({ page: 1, limit: 5 })
+        ])
+
+        const combinedStats = {
+          ...statsRes,
+          appointmentStatus: {
+            pending: statsRes.pendingAppointments?.count || 0,
+            confirmed: statsRes.confirmedAppointments?.count || 0,
+            completed: statsRes.completed?.count || 0,
+            cancelled: statsRes.cancelled?.count || 0,
+          },
+          usersStatus: {
+            active: statsRes.activeUsers?.count || 0,
+            inactive: statsRes.inactiveUsers?.count || 0,
+          },
+          monthlyAppointments: (analyticsRes?.byMonth || []).map(m => ({
+            name: monthNames[m.month - 1] || `${m.month}/${m.year}`,
+            appointments: m.count || 0
+          })),
+          topDoctors: (topDoctorsRes || []).map(d => ({
+            name: `Dr. ${d.name}`,
+            specialty: d.specialty,
+            appointments: d.totalAppointments,
+            rating: d.averageRating || 0.0
+          })),
+          specialtyDistribution: (specialtyRes || []).map(s => ({
+            name: s.specialty,
+            value: s.count
+          })),
+          recentAppointments: recentApptsRes?.data || []
+        }
+
+        // Fetch reviews for top doctors to populate reviews panel
+        let combinedReviews = []
+        if (topDoctorsRes && topDoctorsRes.length > 0) {
+          try {
+            const reviewsPromises = topDoctorsRes.slice(0, 3).map(d =>
+              reviewService.getDoctorReviews(d.doctorId, { page: 1, limit: 5 })
+            )
+            const reviewsResults = await Promise.all(reviewsPromises)
+            combinedReviews = reviewsResults.flatMap(r => r.data || [])
+            combinedReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          } catch (revErr) {
+            console.warn("Could not fetch top doctors reviews:", revErr)
+          }
+        }
+        combinedStats.latestReviews = combinedReviews
+
+        setStats(combinedStats)
       } catch (err) {
         console.error(err)
         setError('Failed to fetch dashboard statistics')
@@ -80,7 +141,7 @@ const AdminDashboard = () => {
         setLoading(false)
       }
     }
-    fetchStats()
+    fetchAllStats()
   }, [])
 
   if (error) {
@@ -95,7 +156,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="admin-dashboard">
+    <div className="admin-dashboard space-y-6">
       <DashboardHeader />
 
       {/* Stat Cards Row */}
@@ -147,6 +208,12 @@ const AdminDashboard = () => {
             <SpecialtyChart data={stats?.specialtyDistribution} />
           </>
         )}
+      </div>
+
+      {/* Activity & Reviews Row - 2 columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecentActivity appointments={stats?.recentAppointments} isLoading={loading} />
+        <LatestReviews reviews={stats?.latestReviews} isLoading={loading} />
       </div>
     </div>
   )
