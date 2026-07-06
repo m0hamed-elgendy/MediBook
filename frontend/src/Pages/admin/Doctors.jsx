@@ -9,6 +9,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import ErrorState from '../../components/ui/ErrorState'
 import { Stethoscope, Star, Search, MoreHorizontal, X } from 'lucide-react'
 import { FiUser, FiSliders } from 'react-icons/fi'
+import { useToast } from '../../context/ToastContext'
 
 const SPECIALTY_OPTIONS = [
   { value: 'Cardiology', label: 'Cardiology' },
@@ -101,6 +102,8 @@ const Doctors = () => {
 
   const [doctorToSuspend, setDoctorToSuspend] = useState(null)
   const [isActionLoading, setIsActionLoading] = useState(false)
+  const [actionError, setActionError] = useState('')
+  const { addToast } = useToast()
 
   const fetchDoctors = async () => {
     try {
@@ -141,6 +144,7 @@ const Doctors = () => {
   }
 
   const handleSuspendClick = (doc) => {
+    setActionError('')
     setDoctorToSuspend(doc)
   }
 
@@ -148,12 +152,15 @@ const Doctors = () => {
     if (!doctorToSuspend) return
     try {
       setIsActionLoading(true)
+      setActionError('')
       await adminService.suspendUser(doctorToSuspend.user?._id)
+      addToast('Doctor deactivated successfully.', 'success')
       setDoctorToSuspend(null)
       fetchDoctors()
     } catch (err) {
-      console.error(err)
-      alert('Failed to suspend doctor.')
+      const msg = err.response?.data?.message || 'Failed to deactivate doctor. Please try again.'
+      setActionError(msg)
+      addToast(msg, 'error')
     } finally {
       setIsActionLoading(false)
     }
@@ -484,7 +491,7 @@ const Doctors = () => {
       {/* Suspend Confirmation Modal */}
       <Modal
         isOpen={!!doctorToSuspend}
-        onClose={() => setDoctorToSuspend(null)}
+        onClose={() => { setDoctorToSuspend(null); setActionError('') }}
         title="Deactivate Doctor"
         size="sm"
         footer={
@@ -511,6 +518,11 @@ const Doctors = () => {
             <p className="text-xs font-medium text-red-500">
               They will immediately lose access to the system.
             </p>
+            {actionError && (
+              <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
+                {actionError}
+              </div>
+            )}
           </div>
         )}
       </Modal>

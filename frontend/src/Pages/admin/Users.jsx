@@ -11,6 +11,7 @@ import Pagination from '../../components/ui/Pagination'
 import EmptyState from '../../components/ui/EmptyState'
 import ErrorState from '../../components/ui/ErrorState'
 import { FiUsers, FiEye, FiUserMinus, FiCheckCircle } from 'react-icons/fi'
+import { useToast } from '../../context/ToastContext'
 
 const Users = () => {
     const [users, setUsers] = useState([])
@@ -32,6 +33,8 @@ const Users = () => {
     // Action Confirmation Modal
     const [userToSuspend, setUserToSuspend] = useState(null)
     const [isActionLoading, setIsActionLoading] = useState(false)
+    const [actionError, setActionError] = useState('')
+    const { addToast } = useToast()
 
     const fetchUsers = async () => {
         try {
@@ -79,6 +82,7 @@ const Users = () => {
     }
 
     const handleSuspendClick = (user) => {
+        setActionError('')
         setUserToSuspend(user)
     }
 
@@ -86,12 +90,15 @@ const Users = () => {
         if (!userToSuspend) return
         try {
             setIsActionLoading(true)
+            setActionError('')
             await adminService.suspendUser(userToSuspend._id)
+            addToast('User suspended successfully.', 'success')
             setUserToSuspend(null)
             fetchUsers()
         } catch (err) {
-            console.error(err)
-            alert('Failed to suspend user.')
+            const msg = err.response?.data?.message || 'Failed to suspend user. Please try again.'
+            setActionError(msg)
+            addToast(msg, 'error')
         } finally {
             setIsActionLoading(false)
         }
@@ -311,12 +318,12 @@ const Users = () => {
 
             <Modal
                 isOpen={!!userToSuspend}
-                onClose={() => setUserToSuspend(null)}
+                onClose={() => { setUserToSuspend(null); setActionError('') }}
                 title="Suspend User Account"
                 size="sm"
                 footer={
                     <>
-                        <Button variant="outline" size="sm" onClick={() => setUserToSuspend(null)}>
+                        <Button variant="outline" size="sm" onClick={() => { setUserToSuspend(null); setActionError('') }}>
                             Cancel
                         </Button>
                         <Button
@@ -338,6 +345,11 @@ const Users = () => {
                         <p className="text-xs font-medium text-red-500">
                             The user will no longer be able to log in or book appointments.
                         </p>
+                        {actionError && (
+                            <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
+                                {actionError}
+                            </div>
+                        )}
                     </div>
                 )}
             </Modal>

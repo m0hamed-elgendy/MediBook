@@ -8,6 +8,7 @@ import Modal from '../../components/ui/Modal'
 import EmptyState from '../../components/ui/EmptyState'
 import ErrorState from '../../components/ui/ErrorState'
 import { FiCheckCircle, FiXCircle, FiFileText, FiEye, FiAlertCircle } from 'react-icons/fi'
+import { useToast } from '../../context/ToastContext'
 
 const DoctorApplications = () => {
     const [applications, setApplications] = useState([])
@@ -23,6 +24,8 @@ const DoctorApplications = () => {
     const [appToReject, setAppToReject] = useState(null)
     const [rejectReason, setRejectReason] = useState('')
     const [isActionLoading, setIsActionLoading] = useState(false)
+    const [actionError, setActionError] = useState('')
+    const { addToast } = useToast()
 
     const fetchApplications = async () => {
         try {
@@ -46,13 +49,16 @@ const DoctorApplications = () => {
         if (!appToApprove) return
         try {
             setIsActionLoading(true)
+            setActionError('')
             await doctorApplicationService.approveApplication(appToApprove._id)
+            addToast('Application approved successfully.', 'success')
             setAppToApprove(null)
             setIsDetailsOpen(false)
             fetchApplications()
         } catch (err) {
-            console.error(err)
-            alert('Failed to approve application.')
+            const msg = err.response?.data?.message || 'Failed to approve application. Please try again.'
+            setActionError(msg)
+            addToast(msg, 'error')
         } finally {
             setIsActionLoading(false)
         }
@@ -61,19 +67,22 @@ const DoctorApplications = () => {
     const handleConfirmReject = async () => {
         if (!appToReject) return
         if (!rejectReason.trim()) {
-            alert('Please specify a rejection reason.')
+            addToast('Please provide a rejection reason.', 'error')
             return
         }
         try {
             setIsActionLoading(true)
+            setActionError('')
             await doctorApplicationService.rejectApplication(appToReject._id, rejectReason)
+            addToast('Application rejected.', 'success')
             setAppToReject(null)
             setRejectReason('')
             setIsDetailsOpen(false)
             fetchApplications()
         } catch (err) {
-            console.error(err)
-            alert('Failed to reject application.')
+            const msg = err.response?.data?.message || 'Failed to reject application. Please try again.'
+            setActionError(msg)
+            addToast(msg, 'error')
         } finally {
             setIsActionLoading(false)
         }
@@ -144,7 +153,7 @@ const DoctorApplications = () => {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setAppToApprove(row)}
+                                onClick={() => { setActionError(''); setAppToApprove(row) }}
                                 className="!p-1.5 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-450 dark:hover:bg-emerald-950/20"
                                 title="Approve Application"
                             >
@@ -153,7 +162,7 @@ const DoctorApplications = () => {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setAppToReject(row)}
+                                onClick={() => { setActionError(''); setAppToReject(row) }}
                                 className="!p-1.5 text-rose-600 hover:bg-rose-50 dark:text-rose-450 dark:hover:bg-rose-950/20"
                                 title="Reject Application"
                             >
@@ -245,14 +254,14 @@ const DoctorApplications = () => {
                                 <Button
                                     variant="danger"
                                     size="sm"
-                                    onClick={() => setAppToReject(selectedApp)}
+                                    onClick={() => { setActionError(''); setAppToReject(selectedApp) }}
                                 >
                                     Reject Application
                                 </Button>
                                 <Button
                                     variant="primary"
                                     size="sm"
-                                    onClick={() => setAppToApprove(selectedApp)}
+                                    onClick={() => { setActionError(''); setAppToApprove(selectedApp) }}
                                     icon={FiCheckCircle}
                                 >
                                     Approve Profile
@@ -265,12 +274,12 @@ const DoctorApplications = () => {
 
             <Modal
                 isOpen={!!appToApprove}
-                onClose={() => setAppToApprove(null)}
+                onClose={() => { setAppToApprove(null); setActionError('') }}
                 title="Approve Professional Account"
                 size="sm"
                 footer={
                     <>
-                        <Button variant="outline" size="sm" onClick={() => setAppToApprove(null)}>
+                        <Button variant="outline" size="sm" onClick={() => { setAppToApprove(null); setActionError('') }}>
                             Cancel
                         </Button>
                         <Button
@@ -292,6 +301,11 @@ const DoctorApplications = () => {
                         <p className="text-xs text-gray-500">
                             Their role will be upgraded to Doctor and they will be allowed to start listing availability.
                         </p>
+                        {actionError && (
+                            <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
+                                {actionError}
+                            </div>
+                        )}
                     </div>
                 )}
             </Modal>
@@ -301,6 +315,7 @@ const DoctorApplications = () => {
                 onClose={() => {
                     setAppToReject(null)
                     setRejectReason('')
+                    setActionError('')
                 }}
                 title="Reject Professional Account"
                 size="sm"
@@ -312,6 +327,7 @@ const DoctorApplications = () => {
                             onClick={() => {
                                 setAppToReject(null)
                                 setRejectReason('')
+                                setActionError('')
                             }}
                         >
                             Cancel
@@ -334,6 +350,11 @@ const DoctorApplications = () => {
                             <FiAlertCircle size={18} />
                             <span className="text-sm font-semibold">Provide reason for rejection</span>
                         </div>
+                        {actionError && (
+                            <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
+                                {actionError}
+                            </div>
+                        )}
                         <textarea
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
