@@ -12,6 +12,10 @@ import Appointments from '../pages/admin/Appointments'
 import Reviews from '../pages/admin/Reviews'
 import Settings from '../pages/admin/Settings'
 import DoctorDashboard from '../pages/doctor/Dashboard'
+import DoctorAppointments from '../pages/doctor/Appointments'
+import DoctorReviews from '../pages/doctor/Reviews'
+import DoctorSchedule from '../pages/doctor/Schedule'
+import DoctorProfile from '../pages/doctor/Profile'
 import PatientDashboard from '../pages/patient/Dashboard'
 import PublicLayout from '../layouts/PublicLayout'
 import PatientLayout from '../layouts/PatientLayout'
@@ -55,10 +59,10 @@ const AppRoutes = () => {
             <Route element={<ProtectedRoute allowedRoles={['doctor']} />}>
                 <Route element={<DoctorLayout />}>
                     <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-                    <Route path="/doctor/schedule" element={<DoctorDashboard />} />
-                    <Route path="/doctor/appointments" element={<DoctorDashboard />} />
-                    <Route path="/doctor/reviews" element={<DoctorDashboard />} />
-                    <Route path="/doctor/profile" element={<DoctorDashboard />} />
+                    <Route path="/doctor/schedule" element={<DoctorSchedule />} />
+                    <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+                    <Route path="/doctor/reviews" element={<DoctorReviews />} />
+                    <Route path="/doctor/profile" element={<DoctorProfile />} />
                 </Route>
             </Route>
 
