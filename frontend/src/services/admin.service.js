@@ -6,6 +6,26 @@ const adminService = {
         return response.data
     },
 
+    getReviewsStats: async () => {
+        const response = await api.get('/admin/dashboard/reviews-stats')
+        return response.data
+    },
+
+    getAppointmentsAnalytics: async () => {
+        const response = await api.get('/admin/dashboard/appointments-analytics')
+        return response.data
+    },
+
+    getTopDoctors: async () => {
+        const response = await api.get('/admin/dashboard/top-doctors')
+        return response.data
+    },
+
+    getDoctorsBySpecialty: async () => {
+        const response = await api.get('/admin/dashboard/getDoctorsBySpecialty')
+        return response.data
+    },
+
     getUsers: async (params = {}) => {
         const response = await api.get('/users', { params })
         return response.data
