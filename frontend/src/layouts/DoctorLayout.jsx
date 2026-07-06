@@ -1,5 +1,6 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import AnimatedPage from '../components/common/AnimatedPage'
 import {
     FiGrid, FiCalendar, FiClipboard,
     FiStar, FiUser, FiLogOut, FiBell, FiPlusCircle
@@ -98,7 +99,9 @@ const DoctorLayout = () => {
 
                 {/* Page Content */}
                 <main className="doc-main">
-                    <Outlet />
+                    <AnimatedPage>
+                        <Outlet />
+                    </AnimatedPage>
                 </main>
 
                 {/* Footer */}

@@ -1,4 +1,5 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 
 const Button = ({
     children,
@@ -29,10 +30,13 @@ const Button = ({
     }
 
     return (
-        <button
+        <motion.button
             type={type}
             disabled={disabled || isLoading}
             onClick={onClick}
+            whileHover={!disabled ? { scale: 1.02 } : undefined}
+            whileTap={!disabled ? { scale: 0.98 } : undefined}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             className={`${baseStyle} ${variants[variant]} ${sizes[size]} ${className}`}
             {...props}
         >
@@ -45,7 +49,7 @@ const Button = ({
                 <Icon className="-ml-0.5 mr-2 h-4 w-4" />
             ) : null}
             {children}
-        </button>
+        </motion.button>
     )
 }
 

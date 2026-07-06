@@ -1,5 +1,6 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import AnimatedPage from '../components/common/AnimatedPage'
 import {
     FiGrid, FiCalendar, FiMessageSquare,
     FiSettings, FiHelpCircle, FiLogOut
@@ -75,7 +76,9 @@ const PatientLayout = () => {
 
             {/* Main Content */}
             <main className="patient-main">
-                <Outlet />
+                <AnimatedPage>
+                    <Outlet />
+                </AnimatedPage>
             </main>
         </div>
     )
