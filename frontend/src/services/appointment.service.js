@@ -16,6 +16,11 @@ const appointmentService = {
         return response.data
     },
 
+    getAll: async (params = {}) => {
+        const response = await api.get('/appointments', { params })
+        return response.data
+    },
+
     updateStatus: async (id, status, notes) => {
         const response = await api.patch(`/appointments/${id}/status`, { status, notes })
         return response.data
