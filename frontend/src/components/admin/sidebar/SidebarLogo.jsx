@@ -1,22 +1,30 @@
 import { HeartPulse } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-const SidebarLogo = () => {
+const SidebarLogo = ({ collapsed }) => {
     return (
         <Link
             to="/admin/dashboard"
-            className="flex items-center gap-3 px-6 py-8 border-b border-gray-100"
+            className="sidebar__logo"
         >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md">
+            <div className="sidebar__logo-icon">
                 <HeartPulse size={24} />
             </div>
 
-            <div>
-                <h1 className="text-xl font-bold text-gray-900">
+            <div
+                className="sidebar__logo-text-wrap"
+                style={{
+                    opacity: collapsed ? 0 : 1,
+                    width: collapsed ? 0 : 'auto',
+                    overflow: 'hidden',
+                    transition: 'opacity 0.2s ease, width 0.3s ease',
+                    whiteSpace: 'nowrap',
+                }}
+            >
+                <h1 className="sidebar__logo-title">
                     MediBook
                 </h1>
-
-                <p className="text-sm text-gray-500">
+                <p className="sidebar__logo-subtitle">
                     Healthcare Admin
                 </p>
             </div>

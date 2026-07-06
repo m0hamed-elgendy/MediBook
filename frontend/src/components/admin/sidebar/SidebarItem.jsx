@@ -1,58 +1,67 @@
 import { NavLink } from 'react-router-dom'
-import clsx from 'clsx'
+import { useState } from 'react'
 
-const SidebarItem = ({ item }) => {
-
+const SidebarItem = ({ item, collapsed, onNavigate }) => {
     const Icon = item.icon
+    const [showTooltip, setShowTooltip] = useState(false)
 
     return (
-        <NavLink
-            to={item.path}
-            className={({ isActive }) =>
-                clsx(
-                    'group flex items-center justify-between rounded-xl px-4 py-3 transition-all duration-200',
-                    isActive
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
-                )
-            }
+        <div
+            className="sidebar__item-wrapper"
+            onMouseEnter={() => collapsed && setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
         >
-            {({ isActive }) => (
-                <>
-                    <div className="flex items-center gap-3">
+            <NavLink
+                to={item.path}
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                    `sidebar__item ${isActive ? 'sidebar__item--active' : ''} ${collapsed ? 'sidebar__item--collapsed' : ''}`
+                }
+            >
+                {({ isActive }) => (
+                    <>
+                        <div className="sidebar__item-left">
+                            <Icon
+                                size={20}
+                                strokeWidth={2}
+                                className={`sidebar__item-icon ${isActive ? 'sidebar__item-icon--active' : ''}`}
+                            />
 
-                        <Icon
-                            size={20}
-                            strokeWidth={2}
-                            className={clsx(
-                                'transition-colors',
-                                isActive
-                                    ? 'text-white'
-                                    : 'text-gray-500 group-hover:text-blue-600'
-                            )}
-                        />
+                            <span
+                                className="sidebar__item-label"
+                                style={{
+                                    opacity: collapsed ? 0 : 1,
+                                    width: collapsed ? 0 : 'auto',
+                                    overflow: 'hidden',
+                                    transition: 'opacity 0.2s ease, width 0.3s ease',
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
+                                {item.title}
+                            </span>
+                        </div>
 
-                        <span className="font-medium">
-                            {item.title}
-                        </span>
+                        {item.badge && !collapsed && (
+                            <span
+                                className={`sidebar__item-badge ${isActive ? 'sidebar__item-badge--active' : ''}`}
+                            >
+                                {item.badge}
+                            </span>
+                        )}
+                    </>
+                )}
+            </NavLink>
 
-                    </div>
-
+            {/* Tooltip when collapsed */}
+            {collapsed && showTooltip && (
+                <div className="sidebar__tooltip">
+                    {item.title}
                     {item.badge && (
-                        <span
-                            className={clsx(
-                                'rounded-full px-2 py-0.5 text-xs font-semibold',
-                                isActive
-                                    ? 'bg-white/20 text-white'
-                                    : 'bg-red-100 text-red-600'
-                            )}
-                        >
-                            {item.badge}
-                        </span>
+                        <span className="sidebar__tooltip-badge">{item.badge}</span>
                     )}
-                </>
+                </div>
             )}
-        </NavLink>
+        </div>
     )
 }
 

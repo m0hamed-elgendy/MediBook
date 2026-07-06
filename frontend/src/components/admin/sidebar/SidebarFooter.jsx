@@ -1,46 +1,50 @@
 import { ChevronDown } from 'lucide-react'
 
-const SidebarFooter = ({ user, onClick }) => {
+const SidebarFooter = ({ user, collapsed, onClick }) => {
     return (
         <button
             onClick={onClick}
-            className="w-full border-t border-gray-100 p-5 hover:bg-gray-50 transition"
+            className={`sidebar__footer ${collapsed ? 'sidebar__footer--collapsed' : ''}`}
         >
-            <div className="flex items-center justify-between">
-
-                <div className="flex items-center gap-3">
-
-                    <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg">
+            <div className="sidebar__footer-inner">
+                <div className="sidebar__footer-left">
+                    <div className="sidebar__footer-avatar">
                         {user?.profileImage ? (
                             <img
                                 src={user.profileImage}
                                 alt={user.name}
-                                className="w-full h-full rounded-full object-cover"
+                                className="sidebar__footer-avatar-img"
                             />
                         ) : (
                             user?.name?.charAt(0).toUpperCase()
                         )}
                     </div>
 
-                    <div className="text-left">
-
-                        <h4 className="font-semibold text-gray-900">
+                    <div
+                        className="sidebar__footer-info"
+                        style={{
+                            opacity: collapsed ? 0 : 1,
+                            width: collapsed ? 0 : 'auto',
+                            overflow: 'hidden',
+                            transition: 'opacity 0.2s ease, width 0.3s ease',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        <h4 className="sidebar__footer-name">
                             {user?.name}
                         </h4>
-
-                        <p className="text-sm text-gray-500 truncate max-w-[150px]">
+                        <p className="sidebar__footer-email">
                             {user?.email}
                         </p>
-
                     </div>
-
                 </div>
 
-                <ChevronDown
-                    size={18}
-                    className="text-gray-500"
-                />
-
+                {!collapsed && (
+                    <ChevronDown
+                        size={16}
+                        className="sidebar__footer-chevron"
+                    />
+                )}
             </div>
         </button>
     )
