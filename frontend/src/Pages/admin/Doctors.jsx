@@ -10,6 +10,7 @@ import ErrorState from '../../components/ui/ErrorState'
 import { Stethoscope, Star, Search, MoreHorizontal, X } from 'lucide-react'
 import { FiUser, FiSliders } from 'react-icons/fi'
 import { useToast } from '../../context/ToastContext'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 
 const SPECIALTY_OPTIONS = [
   { value: 'Cardiology', label: 'Cardiology' },
@@ -489,43 +490,22 @@ const Doctors = () => {
       </Modal>
 
       {/* Suspend Confirmation Modal */}
-      <Modal
+      <ConfirmModal
         isOpen={!!doctorToSuspend}
         onClose={() => { setDoctorToSuspend(null); setActionError('') }}
+        onConfirm={handleConfirmSuspend}
         title="Deactivate Doctor"
-        size="sm"
-        footer={
-          <>
-            <Button variant="outline" size="sm" onClick={() => setDoctorToSuspend(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              isLoading={isActionLoading}
-              onClick={handleConfirmSuspend}
-            >
-              Confirm Deactivation
-            </Button>
-          </>
-        }
+        message={doctorToSuspend ? `Are you sure you want to deactivate Dr. ${doctorToSuspend.user?.name}?` : ''}
+        detail="The doctor will lose access to the platform until reactivated."
+        confirmLabel="Deactivate"
+        isLoading={isActionLoading}
       >
-        {doctorToSuspend && (
-          <div className="space-y-3">
-            <p className="text-sm text-gray-600">
-              Are you sure you want to deactivate <strong>Dr. {doctorToSuspend.user?.name}</strong>?
-            </p>
-            <p className="text-xs font-medium text-red-500">
-              They will immediately lose access to the system.
-            </p>
-            {actionError && (
-              <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
-                {actionError}
-              </div>
-            )}
+        {actionError && (
+          <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
+            {actionError}
           </div>
         )}
-      </Modal>
+      </ConfirmModal>
     </div>
   )
 }

@@ -7,8 +7,9 @@ import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
 import EmptyState from '../../components/ui/EmptyState'
 import ErrorState from '../../components/ui/ErrorState'
-import { FiCheckCircle, FiXCircle, FiFileText, FiEye, FiAlertCircle } from 'react-icons/fi'
+import { FiCheckCircle, FiXCircle, FiFileText, FiEye } from 'react-icons/fi'
 import { useToast } from '../../context/ToastContext'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 
 const DoctorApplications = () => {
     const [applications, setApplications] = useState([])
@@ -272,98 +273,50 @@ const DoctorApplications = () => {
                 )}
             </Modal>
 
-            <Modal
+            <ConfirmModal
                 isOpen={!!appToApprove}
                 onClose={() => { setAppToApprove(null); setActionError('') }}
-                title="Approve Professional Account"
-                size="sm"
-                footer={
-                    <>
-                        <Button variant="outline" size="sm" onClick={() => { setAppToApprove(null); setActionError('') }}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            isLoading={isActionLoading}
-                            onClick={handleConfirmApprove}
-                        >
-                            Approve
-                        </Button>
-                    </>
-                }
+                onConfirm={handleConfirmApprove}
+                title="Approve Application"
+                message={appToApprove ? `Confirm credentials approval for ${appToApprove.user?.name}.` : ''}
+                detail="Their role will be upgraded to Doctor and they will be allowed to start listing availability."
+                confirmLabel="Approve"
+                confirmVariant="primary"
+                isLoading={isActionLoading}
             >
-                {appToApprove && (
-                    <div className="space-y-2">
-                        <p className="text-sm text-gray-600">
-                            Confirm credentials approval for <strong>{appToApprove.user?.name}</strong>.
-                        </p>
-                        <p className="text-xs text-gray-500">
-                            Their role will be upgraded to Doctor and they will be allowed to start listing availability.
-                        </p>
-                        {actionError && (
-                            <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
-                                {actionError}
-                            </div>
-                        )}
+                {actionError && (
+                    <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
+                        {actionError}
                     </div>
                 )}
-            </Modal>
+            </ConfirmModal>
 
-            <Modal
+            <ConfirmModal
                 isOpen={!!appToReject}
                 onClose={() => {
                     setAppToReject(null)
                     setRejectReason('')
                     setActionError('')
                 }}
-                title="Reject Professional Account"
-                size="sm"
-                footer={
-                    <>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                                setAppToReject(null)
-                                setRejectReason('')
-                                setActionError('')
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="danger"
-                            size="sm"
-                            isLoading={isActionLoading}
-                            onClick={handleConfirmReject}
-                            disabled={!rejectReason.trim()}
-                        >
-                            Reject
-                        </Button>
-                    </>
-                }
+                onConfirm={handleConfirmReject}
+                title="Reject Application"
+                message="Provide a reason for rejection."
+                confirmLabel="Reject"
+                isLoading={isActionLoading}
+                confirmDisabled={!rejectReason.trim()}
             >
-                {appToReject && (
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-rose-600">
-                            <FiAlertCircle size={18} />
-                            <span className="text-sm font-semibold">Provide reason for rejection</span>
-                        </div>
-                        {actionError && (
-                            <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
-                                {actionError}
-                            </div>
-                        )}
-                        <textarea
-                            value={rejectReason}
-                            onChange={(e) => setRejectReason(e.target.value)}
-                            placeholder="Type a message to explain the decision (required)..."
-                            className="w-full min-h-[80px] p-3 text-xs rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                        />
+                {actionError && (
+                    <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 mb-3">
+                        {actionError}
                     </div>
                 )}
-            </Modal>
+                <textarea
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="Type a message to explain the decision (required)..."
+                    className="w-full min-h-[80px] p-3 text-sm rounded-lg border border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-150"
+                />
+            </ConfirmModal>
         </div>
     )
 }

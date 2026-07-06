@@ -12,6 +12,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import ErrorState from '../../components/ui/ErrorState'
 import { FiUsers, FiEye, FiUserMinus, FiCheckCircle } from 'react-icons/fi'
 import { useToast } from '../../context/ToastContext'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 
 const Users = () => {
     const [users, setUsers] = useState([])
@@ -316,43 +317,22 @@ const Users = () => {
                 )}
             </Modal>
 
-            <Modal
+            <ConfirmModal
                 isOpen={!!userToSuspend}
                 onClose={() => { setUserToSuspend(null); setActionError('') }}
-                title="Suspend User Account"
-                size="sm"
-                footer={
-                    <>
-                        <Button variant="outline" size="sm" onClick={() => { setUserToSuspend(null); setActionError('') }}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="danger"
-                            size="sm"
-                            isLoading={isActionLoading}
-                            onClick={handleConfirmSuspend}
-                        >
-                            Suspend
-                        </Button>
-                    </>
-                }
+                onConfirm={handleConfirmSuspend}
+                title="Suspend User"
+                message={userToSuspend ? `Are you sure you want to suspend ${userToSuspend.name}?` : ''}
+                detail="The user will no longer be able to log in or book appointments."
+                confirmLabel="Suspend"
+                isLoading={isActionLoading}
             >
-                {userToSuspend && (
-                    <div className="space-y-3">
-                        <p className="text-sm text-gray-600">
-                            Are you sure you want to suspend <strong>{userToSuspend.name}</strong>?
-                        </p>
-                        <p className="text-xs font-medium text-red-500">
-                            The user will no longer be able to log in or book appointments.
-                        </p>
-                        {actionError && (
-                            <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
-                                {actionError}
-                            </div>
-                        )}
+                {actionError && (
+                    <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
+                        {actionError}
                     </div>
                 )}
-            </Modal>
+            </ConfirmModal>
         </div>
     )
 }
