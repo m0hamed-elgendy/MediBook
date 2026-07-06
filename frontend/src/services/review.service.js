@@ -21,6 +21,16 @@ const reviewService = {
         return response.data
     },
 
+    getDoctorOwnReviews: async (params = {}) => {
+        const response = await api.get('/reviews/my-rating', { params })
+        return response.data
+    },
+
+    getDoctorOwnSummary: async () => {
+        const response = await api.get('/reviews/my-rating/summary')
+        return response.data
+    },
+
     updateReview: async (id, data) => {
         const response = await api.patch(`/reviews/${id}`, data)
         return response.data
