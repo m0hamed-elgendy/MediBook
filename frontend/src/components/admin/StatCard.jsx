@@ -1,43 +1,57 @@
 const StatCard = ({
     title,
     value,
-    percentage,
+    subtitle,
+    subtitleIcon,
     icon,
-    color,
+    iconBg,
+    iconColor,
+    loading,
 }) => {
+    if (loading) {
+        return <StatCardSkeleton />
+    }
+
     return (
-        <div className="bg-white rounded-2xl shadow-sm border p-6 hover:shadow-md transition">
-
-            <div className="flex items-center justify-between">
-
-                <div>
-
-                    <p className="text-sm text-gray-500">
-                        {title}
-                    </p>
-
-                    <h2 className="text-3xl font-bold mt-2">
-                        {value}
-                    </h2>
-
-                    {percentage !== undefined && (
-                        <p className="mt-2 text-sm text-gray-500">
-                            {percentage}% of total
-                        </p>
-                    )}
-
-                </div>
-
+        <div className="admin-stat-card">
+            <div className="admin-stat-card-top">
                 <div
-                    className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl ${color}`}
+                    className="admin-stat-icon"
+                    style={{ backgroundColor: iconBg, color: iconColor }}
                 >
                     {icon}
                 </div>
-
+                <div className="admin-stat-info">
+                    <p className="admin-stat-title">{title}</p>
+                    <h2 className="admin-stat-value">{value}</h2>
+                </div>
             </div>
-
+            {subtitle && (
+                <p className="admin-stat-subtitle">
+                    {subtitleIcon && (
+                        <span className="admin-stat-arrow" style={{ color: '#10B981' }}>
+                            {subtitleIcon}
+                        </span>
+                    )}
+                    {subtitle}
+                </p>
+            )}
         </div>
     )
 }
 
+const StatCardSkeleton = () => (
+    <div className="admin-stat-card admin-stat-card--skeleton">
+        <div className="admin-stat-card-top">
+            <div className="skeleton-box skeleton-icon" />
+            <div className="admin-stat-info">
+                <div className="skeleton-box skeleton-text-sm" />
+                <div className="skeleton-box skeleton-text-lg" />
+            </div>
+        </div>
+        <div className="skeleton-box skeleton-text-xs" style={{ marginTop: 10 }} />
+    </div>
+)
+
+export { StatCardSkeleton }
 export default StatCard
