@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import doctorService from '../../services/doctor.service'
 import { useToast } from '../../context/ToastContext'
 import Button from '../../components/ui/Button'
-import Input from '../../components/ui/Input'
 import Skeleton from '../../components/ui/Skeleton'
 import ErrorState from '../../components/ui/ErrorState'
-import { FiClock, FiPlus, FiTrash2, FiCalendar } from 'react-icons/fi'
+import { Clock, Calendar, Trash2, Timer, Plus, Pencil, X } from 'lucide-react'
+import Select from '../../components/ui/Select'
 
 const DAYS_OF_WEEK = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
@@ -20,12 +20,15 @@ const Schedule = () => {
     const [error, setError] = useState('')
     const [isSaving, setIsSaving] = useState(false)
 
-    // Form for adding slot
+    // Form inputs state
     const [newDay, setNewDay] = useState('Monday')
     const [newFrom, setNewFrom] = useState('09:00')
     const [newTo, setNewTo] = useState('17:00')
+    
+    // Edit state
+    const [editingIndex, setEditingIndex] = useState(null)
 
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         try {
             setLoading(true)
             setError('')
@@ -39,16 +42,35 @@ const Schedule = () => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [])
 
     useEffect(() => {
-        fetchProfile()
+        let active = true
+        const load = async () => {
+            try {
+                setLoading(true)
+                setError('')
+                const res = await doctorService.getProfile()
+                if (!active) return
+                setDoctorProfile(res)
+                setAvailability(res.availability || [])
+                setSessionDuration(res.sessionDuration || 20)
+            } catch (err) {
+                if (active) {
+                    console.error(err)
+                    setError('Failed to fetch doctor schedule profile. Ensure you have submitted/approved a doctor application.')
+                }
+            } finally {
+                if (active) setLoading(false)
+            }
+        }
+        load()
+        return () => { active = false }
     }, [])
 
     const handleAddSlot = (e) => {
         e.preventDefault()
 
-        // Validation
         const [fromH, fromM] = newFrom.split(':').map(Number)
         const [toH, toM] = newTo.split(':').map(Number)
         const fromTotal = fromH * 60 + fromM
@@ -59,14 +81,44 @@ const Schedule = () => {
             return
         }
 
-        // Add
-        const newSlot = { day: newDay, from: newFrom, to: newTo }
-        setAvailability(prev => [...prev, newSlot])
-        addToast('Time slot added. Click save to apply changes.')
+        if (editingIndex !== null) {
+            const updated = [...availability]
+            updated[editingIndex] = { day: newDay, from: newFrom, to: newTo }
+            setAvailability(updated)
+            setEditingIndex(null)
+            addToast('Time slot updated. Click save to apply changes.')
+        } else {
+            const newSlot = { day: newDay, from: newFrom, to: newTo }
+            setAvailability(prev => [...prev, newSlot])
+            addToast('Time slot added. Click save to apply changes.')
+        }
+
+        // Reset time slot form inputs
+        setNewDay('Monday')
+        setNewFrom('09:00')
+        setNewTo('17:00')
+    }
+
+    const handleEditSlot = (index) => {
+        const slot = availability[index]
+        setNewDay(slot.day)
+        setNewFrom(slot.from)
+        setNewTo(slot.to)
+        setEditingIndex(index)
+    }
+
+    const handleCancelEdit = () => {
+        setEditingIndex(null)
+        setNewDay('Monday')
+        setNewFrom('09:00')
+        setNewTo('17:00')
     }
 
     const handleRemoveSlot = (index) => {
         setAvailability(prev => prev.filter((_, i) => i !== index))
+        if (editingIndex === index) {
+            setEditingIndex(null)
+        }
         addToast('Time slot removed. Click save to apply changes.')
     }
 
@@ -88,10 +140,10 @@ const Schedule = () => {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="flex flex-col gap-1.5">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Weekly Schedule</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-xl font-semibold tracking-tight text-gray-900">Weekly Schedule</h1>
+                <p className="text-sm text-gray-500 mt-1">
                     Configure your weekly consultation availabilities and session duration.
                 </p>
             </div>
@@ -99,78 +151,111 @@ const Schedule = () => {
             {error ? (
                 <ErrorState message={error} onRetry={fetchProfile} />
             ) : loading ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                     <Skeleton variant="rectangular" height={120} />
                     <Skeleton variant="rectangular" height={220} />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Left: Configuration Form */}
                     <div className="lg:col-span-1 space-y-6">
-                        {/* Session Duration Card */}
-                        <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-xl p-5 space-y-4 shadow-sm">
-                            <h3 className="text-sm font-bold text-gray-850 dark:text-gray-200">Consultation Config</h3>
-                            <Input
-                                type="number"
-                                label="Session Duration (Minutes)"
-                                value={sessionDuration}
-                                onChange={(e) => setSessionDuration(e.target.value)}
-                                min={5}
-                                max={120}
-                                required
-                            />
-                            <p className="text-[10px] text-gray-400 leading-normal">
+                        {/* Consultation Duration card */}
+                        <div className="bg-white rounded-xl border border-gray-150 p-6 space-y-4 shadow-sm">
+                            <div className="flex items-center gap-2">
+                                <Timer size={16} className="text-gray-400" />
+                                <h3 className="text-sm font-medium text-gray-900">Consultation Config</h3>
+                            </div>
+                            
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-sm font-medium text-gray-700">Duration</label>
+                                <div className="relative flex items-center max-w-[120px]">
+                                    <input
+                                        type="number"
+                                        value={sessionDuration}
+                                        onChange={(e) => setSessionDuration(e.target.value)}
+                                        min={5}
+                                        max={120}
+                                        className="w-full h-11 pl-4 pr-12 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                    <span className="absolute right-4 text-xs font-semibold text-gray-400 pointer-events-none select-none">
+                                        min
+                                    </span>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-400 leading-relaxed">
                                 Determines the length of each appointment slot booked by patients.
                             </p>
                         </div>
 
-                        {/* Add Availability Slot */}
-                        <form onSubmit={handleAddSlot} className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-xl p-5 space-y-4 shadow-sm">
-                            <h3 className="text-sm font-bold text-gray-850 dark:text-gray-200">Add Time Slot</h3>
-                            
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Day of Week</label>
-                                <select
-                                    value={newDay}
-                                    onChange={(e) => setNewDay(e.target.value)}
-                                    className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none focus:border-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200"
-                                >
-                                    {DAYS_OF_WEEK.map(d => (
-                                        <option key={d} value={d}>{d}</option>
-                                    ))}
-                                </select>
+                        {/* Add/Edit Slot card */}
+                        <form onSubmit={handleAddSlot} className="bg-white rounded-xl border border-gray-150 p-6 space-y-6 shadow-sm">
+                            <div className="flex items-center gap-2">
+                                <Clock size={16} className="text-gray-400" />
+                                <h3 className="text-sm font-medium text-gray-900">
+                                    {editingIndex !== null ? 'Edit Time Slot' : 'Add Time Slot'}
+                                </h3>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <Input
-                                    type="time"
-                                    label="From"
-                                    value={newFrom}
-                                    onChange={(e) => setNewFrom(e.target.value)}
-                                    required
-                                />
-                                <Input
-                                    type="time"
-                                    label="To"
-                                    value={newTo}
-                                    onChange={(e) => setNewTo(e.target.value)}
-                                    required
-                                />
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <Select
+                                        value={newDay}
+                                        onChange={setNewDay}
+                                        options={DAYS_OF_WEEK.map(d => ({ value: d, label: d }))}
+                                        label="Day"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-sm font-medium text-gray-700">From</label>
+                                        <input
+                                            type="time"
+                                            value={newFrom}
+                                            onChange={(e) => setNewFrom(e.target.value)}
+                                            required
+                                            className="w-full h-11 px-4 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-sm font-medium text-gray-700">To</label>
+                                        <input
+                                            type="time"
+                                            value={newTo}
+                                            onChange={(e) => setNewTo(e.target.value)}
+                                            required
+                                            className="w-full h-11 px-4 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="flex gap-2 pt-2">
+                                    {editingIndex !== null ? (
+                                        <>
+                                            <Button type="submit" variant="primary" className="flex-1 h-11" icon={Plus}>
+                                                Save Slot
+                                            </Button>
+                                            <Button type="button" variant="outline" onClick={handleCancelEdit} className="flex-1 h-11" icon={X}>
+                                                Cancel
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <Button type="submit" variant="primary" className="w-full h-11" icon={Plus}>
+                                            Add Slot
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
-
-                            <Button type="submit" variant="secondary" size="sm" className="w-full" icon={FiPlus}>
-                                Add Slot
-                            </Button>
                         </form>
                     </div>
 
-                    {/* Right: Availability List View */}
-                    <div className="lg:col-span-2 space-y-4">
-                        <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-xl p-5 shadow-sm flex flex-col min-h-[350px]">
-                            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-4">
-                                <h3 className="text-sm font-bold text-gray-850 dark:text-gray-200 flex items-center gap-1.5">
-                                    <FiCalendar /> Weekly Availability List
-                                </h3>
+                    {/* Availability List card */}
+                    <div className="lg:col-span-2">
+                        <div className="bg-white rounded-xl border border-gray-150 p-6 shadow-sm">
+                            <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-2">
+                                <div className="flex items-center gap-2">
+                                    <Calendar size={16} className="text-gray-400" />
+                                    <h3 className="text-sm font-medium text-gray-900">Weekly Availability</h3>
+                                </div>
                                 <Button
                                     variant="primary"
                                     size="sm"
@@ -182,34 +267,47 @@ const Schedule = () => {
                             </div>
 
                             {availability.length === 0 ? (
-                                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-400">
-                                    <FiClock size={36} className="mb-2" />
-                                    <p className="text-xs font-semibold">No schedule configured.</p>
-                                    <p className="text-[10px] text-gray-400">Use the form to add weekly time slots.</p>
+                                <div className="flex flex-col items-center justify-center py-16 text-center">
+                                    <Clock size={28} className="text-gray-300 mb-3" />
+                                    <p className="text-sm font-medium text-gray-400">No schedule configured.</p>
+                                    <p className="text-xs text-gray-400 mt-1">Use the form to add weekly time slots.</p>
                                 </div>
                             ) : (
-                                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                                <div className="divide-y divide-gray-100">
                                     {availability.map((slot, index) => (
                                         <div
                                             key={index}
-                                            className="flex items-center justify-between p-3.5 bg-gray-50/70 dark:bg-gray-850 border border-gray-100 dark:border-gray-800 rounded-xl animate-in slide-in-from-top-1 fade-in duration-200"
+                                            className="flex items-center justify-between py-3.5 hover:bg-slate-50/50 px-2 rounded-lg transition-colors duration-150"
                                         >
-                                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
-                                                <span className="text-xs font-bold text-gray-800 dark:text-gray-250 w-24">
+                                            <div className="flex items-center gap-3 text-sm text-gray-900">
+                                                <span className="font-semibold text-gray-800 w-24 shrink-0">
                                                     {slot.day}
                                                 </span>
-                                                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                                                    <FiClock size={12} /> {slot.from} — {slot.to}
+                                                <span className="text-gray-300">|</span>
+                                                <span className="text-gray-500 flex items-center gap-1.5 font-medium">
+                                                    <Clock size={13} className="text-gray-400 shrink-0" />
+                                                    {slot.from} - {slot.to}
                                                 </span>
                                             </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleRemoveSlot(index)}
-                                                className="!p-1 text-red-500 hover:bg-red-50"
-                                            >
-                                                <FiTrash2 size={15} />
-                                            </Button>
+                                            
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleEditSlot(index)}
+                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors duration-150 cursor-pointer"
+                                                    title="Edit slot"
+                                                >
+                                                    <Pencil size={14} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveSlot(index)}
+                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-150 cursor-pointer"
+                                                    title="Remove slot"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
