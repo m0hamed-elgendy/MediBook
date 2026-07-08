@@ -1393,3 +1393,50 @@
     }
 }
 
+/* ====================================================
+   DARK MODE OVERRIDES
+   ==================================================== */
+
+.dark .admin-layout-root {
+    background: #0B0F19;
+}
+
+.dark .sidebar {
+    background: #111827;
+    border-right: 1px solid #1F2937;
+}
+
+.dark .admin-header {
+    background: rgba(17, 24, 39, 0.8);
+    border-bottom: 1px solid #1F2937;
+}
+
+.dark .admin-header-menu-btn {
+    color: #F3F4F6;
+}
+
+.dark .admin-header-menu-btn:hover {
+    background: #1F2937;
+}
+
+.dark .admin-header-divider {
+    background: #1F2937;
+}
+
+.dark .admin-header-user-name {
+    color: #F3F4F6;
+}
+
+.dark .admin-header-user-role {
+    color: #9CA3AF;
+}
+
+.dark .admin-header-notif-btn {
+    color: #F3F4F6;
+}
+
+.dark .admin-header-notif-btn:hover {
+    background: #1F2937;
+}
+
+
