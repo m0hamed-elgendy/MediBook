@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import doctorService from '../../services/doctor.service'
 import adminService from '../../services/admin.service'
-import Button from '../../components/ui/Button'
-import Modal from '../../components/ui/Modal'
+import DoctorProfileModal from '../../components/ui/DoctorProfileModal'
 import Avatar from '../../components/ui/Avatar'
 import Pagination from '../../components/ui/Pagination'
 import EmptyState from '../../components/ui/EmptyState'
@@ -106,7 +105,7 @@ const Doctors = () => {
   const [actionError, setActionError] = useState('')
   const { addToast } = useToast()
 
-  const fetchDoctors = async () => {
+  const fetchDoctors = useCallback(async () => {
     try {
       setLoading(true)
       setError('')
@@ -125,11 +124,36 @@ const Doctors = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, search, specialty])
 
   useEffect(() => {
-    fetchDoctors()
-  }, [currentPage, specialty])
+    let active = true
+    const load = async () => {
+      try {
+        setLoading(true)
+        setError('')
+        const res = await doctorService.getDoctors({
+          page: currentPage,
+          limit: 10,
+          search: search || undefined,
+          specialty: specialty || undefined,
+        })
+        if (!active) return
+        setDoctors(res.data || [])
+        setTotal(res.total || 0)
+        setTotalPages(res.totalPages || 1)
+      } catch (err) {
+        if (active) {
+          console.error(err)
+          setError('Failed to load doctors list.')
+        }
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    load()
+    return () => { active = false }
+  }, [currentPage, specialty, search])
 
   const handleSearchSubmit = (e) => {
     e.preventDefault()
@@ -147,6 +171,18 @@ const Doctors = () => {
   const handleSuspendClick = (doc) => {
     setActionError('')
     setDoctorToSuspend(doc)
+  }
+
+  const handleViewDoctor = async (doc) => {
+    setSelectedDoctor(doc)
+    setIsDetailsOpen(true)
+    try {
+      const fullDoc = await adminService.getDoctorDetails(doc._id)
+      setSelectedDoctor(fullDoc)
+    } catch (err) {
+      console.error(err)
+      addToast('Failed to load full doctor profile.', 'error')
+    }
   }
 
   const handleConfirmSuspend = async () => {
@@ -167,37 +203,13 @@ const Doctors = () => {
     }
   }
 
-  const renderStars = (rating) => {
-    const num = rating || 0
-    return (
-      <div className="flex items-center gap-1">
-        <div className="flex">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Star
-              key={i}
-              size={13}
-              className={i <= Math.round(num) ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}
-              strokeWidth={0}
-            />
-          ))}
-        </div>
-        <span className="text-sm font-semibold text-gray-800 ml-1.5">
-          {num > 0 ? num.toFixed(1) : '—'}
-        </span>
-        <span className="text-xs text-gray-400 ml-0.5">
-          ({selectedDoctor?.reviewsCount || 0} reviews)
-        </span>
-      </div>
-    )
-  }
-
   const hasActiveFilters = search || specialty || status
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Doctors</h1>
+        <h1 className="text-xl font-bold text-gray-900">Doctors ({total})</h1>
         <p className="text-sm text-gray-500 mt-1">
           Manage registered doctors, view profiles, and control access.
         </p>
@@ -390,7 +402,7 @@ const Doctors = () => {
                         <td className="px-5 py-4 text-right">
                           <ActionsDropdown
                             doctor={row}
-                            onView={(doc) => { setSelectedDoctor(doc); setIsDetailsOpen(true) }}
+                            onView={handleViewDoctor}
                             onDeactivate={handleSuspendClick}
                           />
                         </td>
@@ -410,84 +422,13 @@ const Doctors = () => {
         </div>
       )}
 
-      {/* Details Modal */}
-      <Modal
+      <DoctorProfileModal
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
-        title="Doctor Profile"
-        size="md"
-      >
-        {selectedDoctor && (
-          <div className="space-y-5">
-            <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
-              <Avatar src={selectedDoctor.user?.profileImage} name={selectedDoctor.user?.name} size="lg" />
-              <div>
-                <h3 className="text-base font-bold text-gray-900">Dr. {selectedDoctor.user?.name}</h3>
-                <p className="text-xs text-gray-500">{selectedDoctor.user?.email}</p>
-                <div className="flex gap-2 mt-2">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border border-blue-200 bg-blue-50 text-blue-700">
-                    {selectedDoctor.specialty}
-                  </span>
-                  {renderStars(selectedDoctor.averageRating)}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4 text-sm">
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Biography</p>
-                <p className="text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100 italic">
-                  &ldquo;{selectedDoctor.bio || 'No bio listed.'}&rdquo;
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Consultation Price</p>
-                  <p className="text-gray-900 font-medium">{selectedDoctor.consultationPrice || 0} EGP</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Phone</p>
-                  <p className="text-gray-900 font-medium">{selectedDoctor.phone || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Address</p>
-                  <p className="text-gray-900 font-medium">{selectedDoctor.address || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Rating</p>
-                  <p className="text-gray-900 font-medium">
-                    {selectedDoctor.averageRating || 0} / 5 ({selectedDoctor.reviewsCount || 0} reviews)
-                  </p>
-                </div>
-              </div>
-              {selectedDoctor.services?.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Services</p>
-                  <div className="flex flex-wrap gap-1.5 mt-1">
-                    {selectedDoctor.services.map((srv, i) => (
-                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                        {srv}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {selectedDoctor.symptoms?.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Symptoms Treated</p>
-                  <div className="flex flex-wrap gap-1.5 mt-1">
-                    {selectedDoctor.symptoms.map((sym, i) => (
-                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                        {sym}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </Modal>
+        doctor={selectedDoctor}
+        onEdit={() => setIsDetailsOpen(false)}
+        onDeactivate={() => { setIsDetailsOpen(false); handleSuspendClick(selectedDoctor) }}
+      />
 
       {/* Suspend Confirmation Modal */}
       <ConfirmModal

@@ -34,6 +34,11 @@ const adminService = {
     suspendUser: async (id) => {
         const response = await api.patch(`/users/${id}/suspend`)
         return response.data
+    },
+
+    getDoctorDetails: async (id) => {
+        const response = await api.get(`/doctors/${id}/admin`)
+        return response.data
     }
 }
 
