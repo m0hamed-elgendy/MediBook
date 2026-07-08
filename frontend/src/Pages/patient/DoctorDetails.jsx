@@ -5,6 +5,7 @@ import {
     FiUser, FiCheckCircle, FiMessageSquare, FiArrowLeft, FiAlertCircle 
 } from 'react-icons/fi'
 import doctorService from '../../services/doctor.service'
+import Textarea from '../../components/ui/Textarea'
 import appointmentService from '../../services/appointment.service'
 import reviewService from '../../services/review.service'
 import { useAuth } from '../../context/AuthContext'
@@ -404,14 +405,13 @@ const DoctorDetails = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            <textarea
-                                                rows="3"
-                                                value={reviewComment}
-                                                onChange={(e) => setReviewComment(e.target.value)}
-                                                placeholder="Write about your experience with this doctor..."
-                                                className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm outline-none focus:border-blue-500 resize-none"
-                                                required
-                                            ></textarea>
+                                        <Textarea
+                                            value={reviewComment}
+                                            onChange={(e) => setReviewComment(e.target.value)}
+                                            placeholder="Write about your experience with this doctor..."
+                                            rows={3}
+                                            required
+                                        />
                                         </div>
                                         <button
                                             type="submit"
@@ -561,13 +561,12 @@ const DoctorDetails = () => {
                                         <label className="block text-xs font-bold text-gray-600">
                                             Add Notes (Optional)
                                         </label>
-                                        <textarea
-                                            rows="3"
+                                        <Textarea
                                             value={notes}
                                             onChange={(e) => setNotes(e.target.value)}
                                             placeholder="Write symptoms or reasons for appointment..."
-                                            className="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs outline-none focus:border-blue-500 resize-none"
-                                        ></textarea>
+                                            rows={3}
+                                        />
                                     </div>
 
                                     {/* Action button */}

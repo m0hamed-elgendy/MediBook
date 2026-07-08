@@ -7,6 +7,7 @@ import Pagination from '../../components/ui/Pagination'
 import EmptyState from '../../components/ui/EmptyState'
 import ErrorState from '../../components/ui/ErrorState'
 import { Stethoscope, Star, Search, MoreHorizontal, X } from 'lucide-react'
+import Select from '../../components/ui/Select'
 import { FiUser, FiSliders } from 'react-icons/fi'
 import { useToast } from '../../context/ToastContext'
 import ConfirmModal from '../../components/ui/ConfirmModal'
@@ -240,42 +241,30 @@ const Doctors = () => {
           </form>
 
           {/* Specialty Select */}
-          <select
-            value={specialty}
-            onChange={(e) => { setSpecialty(e.target.value); setCurrentPage(1) }}
-            className="px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 appearance-none cursor-pointer min-w-[140px]"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 10px center',
-              backgroundSize: '14px 10px',
-              paddingRight: '32px',
-            }}
-          >
-            <option value="">All Specialties</option>
-            {SPECIALTY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+          <div className="min-w-[160px]">
+            <Select
+              value={specialty}
+              onChange={(val) => { setSpecialty(val); setCurrentPage(1) }}
+              options={[
+                { value: '', label: 'All Specialties' },
+                ...SPECIALTY_OPTIONS,
+              ]}
+              placeholder="All Specialties"
+            />
+          </div>
 
           {/* Status Select */}
-          <select
-            value={status}
-            onChange={(e) => { setStatus(e.target.value); setCurrentPage(1) }}
-            className="px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 appearance-none cursor-pointer min-w-[130px]"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 10px center',
-              backgroundSize: '14px 10px',
-              paddingRight: '32px',
-            }}
-          >
-            <option value="">All Status</option>
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+          <div className="min-w-[150px]">
+            <Select
+              value={status}
+              onChange={(val) => { setStatus(val); setCurrentPage(1) }}
+              options={[
+                { value: '', label: 'All Status' },
+                ...STATUS_OPTIONS,
+              ]}
+              placeholder="All Status"
+            />
+          </div>
 
           {/* Reset */}
           {hasActiveFilters && (

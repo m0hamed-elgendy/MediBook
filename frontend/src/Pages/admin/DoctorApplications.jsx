@@ -8,6 +8,7 @@ import Modal from '../../components/ui/Modal'
 import Pagination from '../../components/ui/Pagination'
 import EmptyState from '../../components/ui/EmptyState'
 import { FiCheckCircle, FiXCircle, FiFileText, FiEye, FiAlertCircle } from 'react-icons/fi'
+import Textarea from '../../components/ui/Textarea'
 import { useToast } from '../../context/ToastContext'
 import ConfirmModal from '../../components/ui/ConfirmModal'
 
@@ -430,11 +431,11 @@ const DoctorApplications = () => {
             {actionError}
           </div>
         )}
-        <textarea
+        <Textarea
           value={rejectReason}
           onChange={(e) => setRejectReason(e.target.value)}
           placeholder="Type a message to explain the decision (required)..."
-          className="w-full min-h-[80px] p-3 text-sm rounded-lg border border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-150"
+          rows={4}
         />
       </ConfirmModal>
     </div>

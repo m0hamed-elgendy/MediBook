@@ -11,6 +11,7 @@ import Pagination from '../../components/ui/Pagination'
 import EmptyState from '../../components/ui/EmptyState'
 import ErrorState from '../../components/ui/ErrorState'
 import { Star, MessageSquare, Trash2 } from 'lucide-react'
+import Select from '../../components/ui/Select'
 
 const Reviews = () => {
     const [doctors, setDoctors] = useState([])
@@ -185,19 +186,20 @@ const Reviews = () => {
                 <div className="flex flex-col gap-1.5 w-full max-w-sm">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Select Doctor</label>
                     {loadingDoctors ? (
-                        <div className="h-9 bg-gray-100 rounded animate-pulse" />
+                        <div className="h-12 bg-gray-100 rounded-xl animate-pulse" />
                     ) : (
-                        <select
+                        <Select
                             value={selectedDoctorId}
-                            onChange={(e) => setSelectedDoctorId(e.target.value)}
-                            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none focus:border-blue-500"
-                        >
-                            {doctors.map(doc => (
-                                <option key={doc._id} value={doc._id}>
-                                    Dr. {doc.user?.name} ({doc.specialty})
-                                </option>
-                            ))}
-                        </select>
+                            onChange={setSelectedDoctorId}
+                            options={[
+                                { value: '', label: 'All Doctors' },
+                                ...doctors.map(doc => ({
+                                    value: doc._id,
+                                    label: `Dr. ${doc.user?.name} (${doc.specialty})`
+                                })),
+                            ]}
+                            placeholder="All Doctors"
+                        />
                     )}
                 </div>
 

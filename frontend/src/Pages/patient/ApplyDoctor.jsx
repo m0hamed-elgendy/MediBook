@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FiCheckCircle, FiFileText, FiUpload, FiAlertCircle, FiArrowLeft, FiUserCheck } from 'react-icons/fi'
 import doctorApplicationService from '../../services/doctor-application.service'
+import Select from '../../components/ui/Select'
 
 const SPECIALTIES = [
   'Cardiology',
@@ -120,18 +121,15 @@ const ApplyDoctor = () => {
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                 Medical Specialty
               </label>
-              <select
+              <Select
                 value={specialty}
-                onChange={(e) => setSpecialty(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 text-sm focus:bg-white focus:border-blue-500 focus:outline-none transition"
-              >
-                <option value="">Select your specialty</option>
-                {SPECIALTIES.map((spec) => (
-                  <option key={spec} value={spec}>
-                    {spec}
-                  </option>
-                ))}
-              </select>
+                onChange={setSpecialty}
+                options={[
+                  { value: '', label: 'Select your specialty' },
+                  ...SPECIALTIES.map(s => ({ value: s, label: s })),
+                ]}
+                placeholder="Select your specialty"
+              />
             </div>
 
             {/* License Image URL */}

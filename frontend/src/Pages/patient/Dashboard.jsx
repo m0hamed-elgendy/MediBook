@@ -42,16 +42,6 @@ const PatientDashboard = () => {
     const completedCount = appointments.filter(a => a.status === 'completed').length
     const firstName = user?.name?.split(' ')[0] || 'there'
 
-    // Extract unique doctor profiles from history for "My Doctors / Favorite Doctors"
-    const uniqueDoctors = []
-    const docIds = new Set()
-    appointments.forEach(appt => {
-        if (appt.doctor && !docIds.has(appt.doctor._id)) {
-            docIds.add(appt.doctor._id)
-            uniqueDoctors.push(appt.doctor)
-        }
-    })
-
     const formatDate = (dateStr) => {
         if (!dateStr) return '—'
         const d = new Date(dateStr)
@@ -257,44 +247,6 @@ const PatientDashboard = () => {
                             <FiChevronRight size={16} />
                         </Link>
                     </div>
-                </div>
-
-                {/* Favorite Doctors / My Doctors */}
-                <div className="pd-sidebar-card">
-                    <h3 className="pd-sidebar-card-title flex items-center gap-2">
-                        <span className="text-red-500 font-bold text-base">♥</span>
-                        My Doctors
-                    </h3>
-                    {uniqueDoctors.length === 0 ? (
-                        <p className="text-[11px] text-gray-500 py-2 italic">No consultation history yet.</p>
-                    ) : (
-                        <div className="space-y-3 mt-3 animate-in fade-in duration-300">
-                            {uniqueDoctors.slice(0, 3).map((doctor) => (
-                                <Link 
-                                    key={doctor._id} 
-                                    to={`/doctors/${doctor._id}`} 
-                                    className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-850 transition-colors duration-150 border border-transparent hover:border-gray-100 dark:hover:border-gray-800/80"
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-300 font-bold text-xs flex items-center justify-center border border-blue-200 dark:border-blue-900">
-                                            {doctor.user?.name?.charAt(0).toUpperCase() || 'D'}
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-xs font-bold text-gray-800 dark:text-gray-200">
-                                                Dr. {doctor.user?.name || 'Doctor'}
-                                            </span>
-                                            <span className="text-[10px] text-gray-400 font-semibold">
-                                                {doctor.specialty || 'General'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full border border-blue-100 dark:border-blue-900">
-                                        View
-                                    </span>
-                                </Link>
-                            ))}
-                        </div>
-                    )}
                 </div>
 
                 {/* Health Tip */}

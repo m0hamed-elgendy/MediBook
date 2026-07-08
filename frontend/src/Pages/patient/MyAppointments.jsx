@@ -12,6 +12,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import ErrorState from '../../components/ui/ErrorState'
 import Skeleton from '../../components/ui/Skeleton'
 import { FiCalendar, FiClock, FiX, FiStar, FiMessageSquare } from 'react-icons/fi'
+import Textarea from '../../components/ui/Textarea'
 
 const MyAppointments = () => {
     const { addToast } = useToast()
@@ -346,11 +347,11 @@ const MyAppointments = () => {
                             <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                                 Remarks / Comment
                             </label>
-                            <textarea
+                            <Textarea
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 placeholder="Describe your consultation experience..."
-                                className="w-full min-h-[90px] p-3 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                rows={4}
                                 required
                             />
                         </div>

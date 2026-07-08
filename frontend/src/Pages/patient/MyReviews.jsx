@@ -8,6 +8,7 @@ import ConfirmModal from '../../components/ui/ConfirmModal'
 import EmptyState from '../../components/ui/EmptyState'
 import ErrorState from '../../components/ui/ErrorState'
 import Skeleton from '../../components/ui/Skeleton'
+import Textarea from '../../components/ui/Textarea'
 import Pagination from '../../components/ui/Pagination'
 import { FiStar, FiMessageSquare, FiEdit2, FiTrash2, FiCalendar } from 'react-icons/fi'
 
@@ -274,12 +275,11 @@ const MyReviews = () => {
                             <label className="text-xs font-bold text-gray-600 dark:text-gray-400">
                                 Review Comment
                             </label>
-                            <textarea
-                                rows="3"
+                            <Textarea
                                 value={editComment}
                                 onChange={(e) => setEditComment(e.target.value)}
                                 placeholder="Edit your review details..."
-                                className="w-full p-3 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 resize-none"
+                                rows={3}
                                 required
                             />
                         </div>

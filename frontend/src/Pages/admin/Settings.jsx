@@ -6,6 +6,7 @@ import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import { FiUser, FiLock, FiSliders, FiBell, FiMoon, FiSun } from 'react-icons/fi'
+import Checkbox from '../../components/ui/Checkbox'
 
 const Settings = () => {
     const { user } = useAuth()
@@ -221,45 +222,25 @@ const Settings = () => {
                                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                                     <FiBell /> Alerts & Notifications
                                 </h4>
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-3 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={emailNotif}
-                                            onChange={(e) => setEmailNotif(e.target.checked)}
-                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4.5 w-4.5"
-                                        />
-                                        <div className="flex flex-col gap-0.5">
-                                            <span className="text-xs font-semibold text-gray-850 dark:text-gray-200">Email System Notifications</span>
-                                            <span className="text-[10px] text-gray-400">Send verification and appointment bookings to your inbox.</span>
-                                        </div>
-                                    </label>
-
-                                    <label className="flex items-center gap-3 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={smsNotif}
-                                            onChange={(e) => setSmsNotif(e.target.checked)}
-                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4.5 w-4.5"
-                                        />
-                                        <div className="flex flex-col gap-0.5">
-                                            <span className="text-xs font-semibold text-gray-850 dark:text-gray-200">SMS Verification Codes</span>
-                                            <span className="text-[10px] text-gray-400">Receive system confirmations directly via mobile SMS text.</span>
-                                        </div>
-                                    </label>
-
-                                    <label className="flex items-center gap-3 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={weeklyReport}
-                                            onChange={(e) => setWeeklyReport(e.target.checked)}
-                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4.5 w-4.5"
-                                        />
-                                        <div className="flex flex-col gap-0.5">
-                                            <span className="text-xs font-semibold text-gray-850 dark:text-gray-200">Weekly Performance Analytics</span>
-                                            <span className="text-[10px] text-gray-400">Receive analytics summary summaries every Monday morning.</span>
-                                        </div>
-                                    </label>
+                                <div className="space-y-4">
+                                    <Checkbox
+                                        checked={emailNotif}
+                                        onChange={(e) => setEmailNotif(e.target.checked)}
+                                        label="Email System Notifications"
+                                        description="Send verification and appointment bookings to your inbox."
+                                    />
+                                    <Checkbox
+                                        checked={smsNotif}
+                                        onChange={(e) => setSmsNotif(e.target.checked)}
+                                        label="SMS Verification Codes"
+                                        description="Receive system confirmations directly via mobile SMS text."
+                                    />
+                                    <Checkbox
+                                        checked={weeklyReport}
+                                        onChange={(e) => setWeeklyReport(e.target.checked)}
+                                        label="Weekly Performance Analytics"
+                                        description="Receive analytics summary summaries every Monday morning."
+                                    />
                                 </div>
                             </div>
 

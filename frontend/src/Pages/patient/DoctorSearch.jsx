@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { FiStar, FiMapPin, FiDollarSign, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi'
 import doctorService from '../../services/doctor.service'
+import Select from '../../components/ui/Select'
 
 const SPECIALTIES = ['Cardiology', 'Dermatology', 'Orthopedics', 'Pediatrics', 'ENT', 'Neurology']
 
@@ -69,16 +70,15 @@ const DoctorSearch = () => {
                             {/* Specialty */}
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-gray-600 mb-2">Specialty</label>
-                                <select
+                                <Select
                                     value={specialty}
-                                    onChange={(e) => setSpecialty(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-500 cursor-pointer"
-                                >
-                                    <option value="">All Specialties</option>
-                                    {SPECIALTIES.map(s => (
-                                        <option key={s} value={s}>{s}</option>
-                                    ))}
-                                </select>
+                                    onChange={setSpecialty}
+                                    options={[
+                                        { value: '', label: 'All Specialties' },
+                                        ...SPECIALTIES.map(s => ({ value: s, label: s })),
+                                    ]}
+                                    placeholder="All Specialties"
+                                />
                             </div>
 
                             {/* Doctor Name Search */}
