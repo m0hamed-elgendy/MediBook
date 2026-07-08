@@ -11,6 +11,11 @@ const doctorService = {
         return response.data
     },
 
+    getBusySlots: async (id, date) => {
+        const response = await api.get(`/doctors/${id}/busy`, { params: { date } })
+        return response.data
+    },
+
     getProfile: async () => {
         const response = await api.get('/doctors/profile')
         return response.data
