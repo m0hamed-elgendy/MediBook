@@ -7,12 +7,13 @@ import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Skeleton from '../../components/ui/Skeleton'
 import ErrorState from '../../components/ui/ErrorState'
-import { FiCamera, FiPlus, FiX } from 'react-icons/fi'
+import { FiCamera, FiPlus, FiX, FiMail, FiStar, FiDollarSign } from 'react-icons/fi'
+import { Stethoscope } from 'lucide-react'
 import Textarea from '../../components/ui/Textarea'
 
 const Profile = () => {
     const { addToast } = useToast()
-    const { user } = useAuth()
+    const { user, updateUser } = useAuth()
     const [profile, setProfile] = useState(null)
     const [isNewDoctor, setIsNewDoctor] = useState(false)
     const [loading, setLoading] = useState(true)
@@ -20,14 +21,12 @@ const Profile = () => {
     const [isSaving, setIsSaving] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
 
-    // Form fields
     const [specialty, setSpecialty] = useState('')
     const [bio, setBio] = useState('')
     const [phone, setPhone] = useState('')
     const [address, setAddress] = useState('')
     const [consultationPrice, setConsultationPrice] = useState(0)
 
-    // Tags
     const [services, setServices] = useState([])
     const [serviceInput, setServiceInput] = useState('')
 
@@ -98,7 +97,9 @@ const Profile = () => {
         try {
             setIsUploading(true)
             const res = await uploadService.uploadProfileImage(file)
-            setProfile(prev => prev ? ({ ...prev, user: { ...prev.user, profileImage: res.profileImage } }) : null)
+            const imageUrl = res.profileImage
+            setProfile(prev => prev ? ({ ...prev, user: { ...prev.user, profileImage: imageUrl } }) : null)
+            updateUser({ ...user, profileImage: imageUrl })
             addToast('Profile image uploaded successfully!')
         } catch (err) {
             console.error(err)
@@ -151,7 +152,7 @@ const Profile = () => {
                 addToast('Doctor professional profile created successfully!')
             } else {
                 if (!profile) return
-                await doctorService.update(profile._id, {
+                const res = await doctorService.update(profile._id, {
                     specialty,
                     bio,
                     phone,
@@ -160,6 +161,9 @@ const Profile = () => {
                     services,
                     symptoms
                 })
+                setProfile(res)
+                const updatedUser = { ...user, specialty }
+                updateUser(updatedUser)
                 addToast('Doctor professional profile updated!')
             }
         } catch (err) {
@@ -170,13 +174,19 @@ const Profile = () => {
         }
     }
 
+    const displayName = profile?.user?.name || user?.name || 'Doctor'
+    const displayEmail = profile?.user?.email || user?.email || ''
+    const displayImage = profile?.user?.profileImage || user?.profileImage || null
+    const displayRating = profile?.averageRating || profile?.rating || 0
+    const displayFee = profile?.consultationPrice || consultationPrice || 0
+
     return (
-        <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="flex flex-col gap-1.5">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+        <div className="space-y-6">
+            <div className="flex flex-col gap-1">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">
                     {isNewDoctor ? 'Create Professional Profile' : 'Professional Profile'}
                 </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500">
                     {isNewDoctor ? 'Fill in your clinic and consultation details to start receiving appointments.' : 'Update your biography, pricing, services, and list treated symptoms.'}
                 </p>
             </div>
@@ -185,52 +195,84 @@ const Profile = () => {
                 <ErrorState message={error} onRetry={fetchProfile} />
             ) : loading ? (
                 <div className="space-y-4">
-                    <Skeleton variant="rectangular" height={150} />
-                    <Skeleton variant="rectangular" height={250} />
+                    <Skeleton variant="rectangular" height={180} />
+                    <Skeleton variant="rectangular" height={320} />
                 </div>
             ) : (
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Left: Image / Avatar Config */}
+                    {/* Left Column */}
                     <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-xl p-6 flex flex-col items-center justify-center text-center shadow-sm">
-                            <div className="relative group">
-                                <div className="w-28 h-28 rounded-full border-2 border-gray-200 dark:border-gray-800 overflow-hidden bg-slate-50 flex items-center justify-center">
-                                    {profile?.user?.profileImage || user?.profileImage ? (
-                                        <img
-                                            src={profile?.user?.profileImage || user?.profileImage}
-                                            alt={profile?.user?.name || user?.name}
-                                            className="w-full h-full object-cover"
+                        {/* Profile Summary Card */}
+                        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                            <div className="flex flex-col items-center text-center">
+                                <div className="relative group">
+                                    <div className="w-28 h-28 rounded-full border-2 border-gray-100 overflow-hidden bg-gray-50 flex items-center justify-center shadow-sm">
+                                        {displayImage ? (
+                                            <img
+                                                src={displayImage}
+                                                alt={displayName}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span className="text-4xl font-extrabold text-blue-600">
+                                                {displayName.charAt(0).toUpperCase()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <label className="absolute bottom-1 right-1 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full cursor-pointer shadow-md transition-colors duration-150">
+                                        <FiCamera size={14} />
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            className="hidden"
+                                            disabled={isUploading}
                                         />
-                                    ) : (
-                                        <span className="text-4xl font-extrabold text-blue-600">
-                                            {(profile?.user?.name || user?.name || 'D').charAt(0).toUpperCase()}
-                                        </span>
-                                    )}
+                                    </label>
                                 </div>
-                                <label className="absolute bottom-1.5 right-1.5 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full cursor-pointer shadow-md transition-colors duration-150">
-                                    <FiCamera size={14} />
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageUpload}
-                                        className="hidden"
-                                        disabled={isUploading}
-                                    />
-                                </label>
+
+                                {isUploading && (
+                                    <span className="text-xs font-semibold text-blue-600 animate-pulse mt-2">Uploading image...</span>
+                                )}
+
+                                <h3 className="text-lg font-bold text-gray-900 mt-4">
+                                    Dr. {displayName}
+                                </h3>
+
+                                <div className="flex items-center gap-1.5 mt-1 text-gray-500 text-sm">
+                                    <FiMail size={14} />
+                                    <span className="text-xs">{displayEmail}</span>
+                                </div>
+
+                                <div className="w-full mt-4 space-y-2.5">
+                                    <div className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                            <Stethoscope size={15} className="text-blue-500" />
+                                            <span>Specialty</span>
+                                        </div>
+                                        <span className="text-sm font-semibold text-gray-800">{specialty || '—'}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                            <FiStar size={15} className="text-amber-500" />
+                                            <span>Rating</span>
+                                        </div>
+                                        <span className="text-sm font-semibold text-gray-800">{displayRating ? `${displayRating.toFixed(1)} / 5` : '—'}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                            <FiDollarSign size={15} className="text-green-500" />
+                                            <span>Fee</span>
+                                        </div>
+                                        <span className="text-sm font-semibold text-gray-800">${displayFee}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <h3 className="text-base font-bold text-gray-850 dark:text-gray-200 mt-4">
-                                Dr. {profile?.user?.name || user?.name}
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-0.5">{profile?.user?.email || user?.email}</p>
-                            
-                            {isUploading && (
-                                <span className="text-xs font-semibold text-blue-600 animate-pulse mt-2">Uploading image...</span>
-                            )}
                         </div>
 
-                        {/* Consultation Price Config */}
-                        <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-xl p-5 space-y-4 shadow-sm">
-                            <h3 className="text-sm font-bold text-gray-850 dark:text-gray-200">Consultation Pricing</h3>
+                        {/* Consultation Price Card */}
+                        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                            <h3 className="text-sm font-semibold text-gray-800 mb-4">Consultation Pricing</h3>
                             <Input
                                 type="number"
                                 label="Consultation Fee ($)"
@@ -242,14 +284,14 @@ const Profile = () => {
                         </div>
                     </div>
 
-                    {/* Right: Bio & Profile details */}
+                    {/* Right Column */}
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-xl p-6 space-y-6 shadow-sm">
-                            <h3 className="text-base font-bold text-gray-850 dark:text-gray-200 border-b border-gray-100 dark:border-gray-800 pb-3">
+                        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                            <h3 className="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3 mb-6">
                                 Professional Details
                             </h3>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <Input
                                     label="Medical Specialty"
                                     value={specialty}
@@ -270,11 +312,9 @@ const Profile = () => {
                                         required
                                     />
                                 </div>
-                                <div className="sm:col-span-2 flex flex-col gap-1.5">
-                                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                        Biography & Background
-                                    </label>
+                                <div className="sm:col-span-2">
                                     <Textarea
+                                        label="Biography & Background"
                                         value={bio}
                                         onChange={(e) => setBio(e.target.value)}
                                         placeholder="Brief background, credentials, and achievements..."
@@ -285,8 +325,8 @@ const Profile = () => {
                             </div>
 
                             {/* Services Offered */}
-                            <div className="space-y-3">
-                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            <div className="mt-6 pt-6 border-t border-gray-100">
+                                <label className="text-sm font-medium text-gray-700 mb-2 block">
                                     Services Offered
                                 </label>
                                 <div className="flex gap-2">
@@ -295,25 +335,27 @@ const Profile = () => {
                                         value={serviceInput}
                                         onChange={(e) => setServiceInput(e.target.value)}
                                         placeholder="Add a service tag (e.g. ECG)..."
-                                        className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200"
+                                        className="flex-1 h-11 px-4 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-gray-300"
                                     />
-                                    <Button onClick={handleAddService} variant="secondary" size="sm" icon={FiPlus}>Add</Button>
+                                    <Button onClick={handleAddService} variant="secondary" size="md" icon={FiPlus}>Add</Button>
                                 </div>
-                                <div className="flex flex-wrap gap-1.5 mt-2">
-                                    {services.map((srv, i) => (
-                                        <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-700 dark:bg-gray-850 dark:border-gray-800 dark:text-gray-350">
-                                            {srv}
-                                            <button type="button" onClick={() => handleRemoveService(i)} className="text-gray-400 hover:text-red-500 cursor-pointer transition-colors duration-150">
-                                                <FiX size={12} />
-                                            </button>
-                                        </span>
-                                    ))}
-                                </div>
+                                {services.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        {services.map((srv, i) => (
+                                            <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-xs font-medium text-blue-700">
+                                                {srv}
+                                                <button type="button" onClick={() => handleRemoveService(i)} className="text-blue-400 hover:text-red-500 cursor-pointer transition-colors">
+                                                    <FiX size={13} />
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Symptoms Treated */}
-                            <div className="space-y-3">
-                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            <div className="mt-6 pt-6 border-t border-gray-100">
+                                <label className="text-sm font-medium text-gray-700 block mb-2">
                                     Symptoms Treated
                                 </label>
                                 <div className="flex gap-2">
@@ -322,24 +364,26 @@ const Profile = () => {
                                         value={symptomInput}
                                         onChange={(e) => setSymptomInput(e.target.value)}
                                         placeholder="Add a symptom tag (e.g. Fever)..."
-                                        className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200"
+                                        className="flex-1 h-11 px-4 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-gray-300"
                                     />
-                                    <Button onClick={handleAddSymptom} variant="secondary" size="sm" icon={FiPlus}>Add</Button>
+                                    <Button onClick={handleAddSymptom} variant="secondary" size="md" icon={FiPlus}>Add</Button>
                                 </div>
-                                <div className="flex flex-wrap gap-1.5 mt-2">
-                                    {symptoms.map((sym, i) => (
-                                        <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-700 dark:bg-gray-850 dark:border-gray-800 dark:text-gray-350">
-                                            {sym}
-                                            <button type="button" onClick={() => handleRemoveSymptom(i)} className="text-gray-400 hover:text-red-500 cursor-pointer transition-colors duration-150">
-                                                <FiX size={12} />
-                                            </button>
-                                        </span>
-                                    ))}
-                                </div>
+                                {symptoms.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        {symptoms.map((sym, i) => (
+                                            <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-lg text-xs font-medium text-emerald-700">
+                                                {sym}
+                                                <button type="button" onClick={() => handleRemoveSymptom(i)} className="text-emerald-400 hover:text-red-500 cursor-pointer transition-colors">
+                                                    <FiX size={13} />
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="flex justify-end pt-4 border-t border-gray-150 dark:border-gray-800">
-                                <Button type="submit" isLoading={isSaving}>
+                            <div className="flex justify-end pt-6 mt-6 border-t border-gray-100">
+                                <Button type="submit" isLoading={isSaving} disabled={isSaving}>
                                     {isNewDoctor ? 'Create Profile' : 'Update Profile'}
                                 </Button>
                             </div>

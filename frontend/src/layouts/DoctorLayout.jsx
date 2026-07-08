@@ -86,8 +86,12 @@ const DoctorLayoutInner = () => {
                         <div className="admin-header-divider" />
                         
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shadow-sm border border-white">
-                                {initials}
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden bg-blue-100 text-blue-600 font-bold text-sm shadow-sm border border-white">
+                                {user?.profileImage ? (
+                                    <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    initials
+                                )}
                             </div>
                             <div className="flex flex-col text-left">
                                 <span className="text-xs font-semibold text-gray-800">
