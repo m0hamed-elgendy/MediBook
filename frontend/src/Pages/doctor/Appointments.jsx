@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import appointmentService from '../../services/appointment.service'
 import { useToast } from '../../context/ToastContext'
 import Table from '../../components/ui/Table'
@@ -9,12 +9,12 @@ import Filters from '../../components/ui/Filters'
 import Pagination from '../../components/ui/Pagination'
 import EmptyState from '../../components/ui/EmptyState'
 import ErrorState from '../../components/ui/ErrorState'
-import { FiCalendar, FiCheck, FiX, FiCheckSquare, FiMessageSquare } from 'react-icons/fi'
+import { FiCalendar, FiCheckSquare, FiMessageSquare } from 'react-icons/fi'
+import Textarea from '../../components/ui/Textarea'
 
 const Appointments = () => {
     const { addToast } = useToast()
     const [appointments, setAppointments] = useState([])
-    const [total, setTotal] = useState(0)
     const [totalPages, setTotalPages] = useState(1)
     const [currentPage, setCurrentPage] = useState(1)
     const [loading, setLoading] = useState(true)
@@ -31,7 +31,7 @@ const Appointments = () => {
     // Cancel modal
     const [apptToCancel, setApptToCancel] = useState(null)
 
-    const fetchAppointments = async () => {
+    const fetchAppointments = useCallback(async () => {
         try {
             setLoading(true)
             setError('')
@@ -41,7 +41,6 @@ const Appointments = () => {
                 status: status || undefined
             })
             setAppointments(res.data || [])
-            setTotal(res.total || 0)
             setTotalPages(res.totalPages || 1)
         } catch (err) {
             console.error(err)
@@ -49,11 +48,17 @@ const Appointments = () => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [currentPage, status])
 
     useEffect(() => {
-        fetchAppointments()
-    }, [currentPage, status])
+        let active = true
+        const load = async () => {
+            if (!active) return
+            await fetchAppointments()
+        }
+        load()
+        return () => { active = false }
+    }, [fetchAppointments])
 
     const handleAccept = async (id) => {
         try {
@@ -291,11 +296,11 @@ const Appointments = () => {
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
                                 <FiMessageSquare /> Consultation Notes / Diagnosis (Optional)
                             </label>
-                            <textarea
+                            <Textarea
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 placeholder="Type diagnostics, prescriptions, or follow-up plans..."
-                                className="w-full min-h-[100px] p-3 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                rows={4}
                             />
                         </div>
                     </div>

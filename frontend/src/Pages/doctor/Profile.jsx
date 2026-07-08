@@ -8,6 +8,7 @@ import Input from '../../components/ui/Input'
 import Skeleton from '../../components/ui/Skeleton'
 import ErrorState from '../../components/ui/ErrorState'
 import { FiCamera, FiPlus, FiX } from 'react-icons/fi'
+import Textarea from '../../components/ui/Textarea'
 
 const Profile = () => {
     const { addToast } = useToast()
@@ -273,11 +274,11 @@ const Profile = () => {
                                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         Biography & Background
                                     </label>
-                                    <textarea
+                                    <Textarea
                                         value={bio}
                                         onChange={(e) => setBio(e.target.value)}
                                         placeholder="Brief background, credentials, and achievements..."
-                                        className="w-full min-h-[100px] p-3.5 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                        rows={4}
                                         required
                                     />
                                 </div>
@@ -302,7 +303,7 @@ const Profile = () => {
                                     {services.map((srv, i) => (
                                         <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-700 dark:bg-gray-850 dark:border-gray-800 dark:text-gray-350">
                                             {srv}
-                                            <button type="button" onClick={() => handleRemoveService(i)} className="text-gray-400 hover:text-gray-600">
+                                            <button type="button" onClick={() => handleRemoveService(i)} className="text-gray-400 hover:text-red-500 cursor-pointer transition-colors duration-150">
                                                 <FiX size={12} />
                                             </button>
                                         </span>
@@ -329,7 +330,7 @@ const Profile = () => {
                                     {symptoms.map((sym, i) => (
                                         <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-700 dark:bg-gray-850 dark:border-gray-800 dark:text-gray-350">
                                             {sym}
-                                            <button type="button" onClick={() => handleRemoveSymptom(i)} className="text-gray-400 hover:text-gray-600">
+                                            <button type="button" onClick={() => handleRemoveSymptom(i)} className="text-gray-400 hover:text-red-500 cursor-pointer transition-colors duration-150">
                                                 <FiX size={12} />
                                             </button>
                                         </span>

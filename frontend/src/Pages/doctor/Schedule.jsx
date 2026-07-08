@@ -84,7 +84,6 @@ const Schedule = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [isSaving, setIsSaving] = useState(false)
-    const [isSavingDuration, setIsSavingDuration] = useState(false)
 
     // Form inputs state (stored as 24h internally for the time input elements)
     const [newDay, setNewDay] = useState('Monday')
@@ -134,26 +133,31 @@ const Schedule = () => {
         return () => { active = false }
     }, [])
 
-    const persistAvailability = async (newAvailability, successMessage) => {
+    // Compute whether there are any unsaved changes compared to the loaded profile
+    const hasChanges = 
+        JSON.stringify(availability) !== JSON.stringify(doctorProfile?.availability || []) ||
+        Number(sessionDuration) !== (doctorProfile?.sessionDuration || 20)
+
+    const handleSave = async () => {
         if (!doctorProfile) return
         try {
             setIsSaving(true)
             await doctorService.update(doctorProfile._id, {
-                availability: newAvailability,
+                availability,
                 sessionDuration: Number(sessionDuration)
             })
-            addToast(successMessage, 'success')
+            addToast('Weekly availability schedule saved successfully!', 'success')
             // Refetch schedule to keep UI synchronized with backend
             await fetchProfile()
         } catch (err) {
             console.error(err)
-            addToast('Failed to update weekly availability schedule.', 'error')
+            addToast('Failed to save weekly availability schedule.', 'error')
         } finally {
             setIsSaving(false)
         }
     }
 
-    const handleAddSlot = async (e) => {
+    const handleAddSlot = (e) => {
         e.preventDefault()
 
         const from24 = ensure24Hour(newFrom)
@@ -168,35 +172,30 @@ const Schedule = () => {
             return
         }
 
-        let updatedAvailability
-        let msg
-
         if (editingIndex !== null) {
-            updatedAvailability = [...availability]
-            updatedAvailability[editingIndex] = {
+            const updated = [...availability]
+            updated[editingIndex] = {
                 day: newDay,
                 from: ensure12Hour(newFrom),
                 to: ensure12Hour(newTo)
             }
+            setAvailability(updated)
             setEditingIndex(null)
-            msg = 'Time slot updated successfully.'
+            addToast('Time slot updated locally. Click Save Schedule to persist changes.', 'info')
         } else {
             const newSlot = {
                 day: newDay,
                 from: ensure12Hour(newFrom),
                 to: ensure12Hour(newTo)
             }
-            updatedAvailability = [...availability, newSlot]
-            msg = 'Time slot added successfully.'
+            setAvailability(prev => [...prev, newSlot])
+            addToast('Time slot added locally. Click Save Schedule to persist changes.', 'info')
         }
 
         // Reset inputs
         setNewDay('Monday')
         setNewFrom('09:00')
         setNewTo('17:00')
-
-        // Persist to backend immediately
-        await persistAvailability(updatedAvailability, msg)
     }
 
     const handleEditSlot = (index) => {
@@ -214,30 +213,12 @@ const Schedule = () => {
         setNewTo('17:00')
     }
 
-    const handleRemoveSlot = async (index) => {
-        const updatedAvailability = availability.filter((_, i) => i !== index)
+    const handleRemoveSlot = (index) => {
+        setAvailability(prev => prev.filter((_, i) => i !== index))
         if (editingIndex === index) {
             setEditingIndex(null)
         }
-        await persistAvailability(updatedAvailability, 'Time slot removed successfully.')
-    }
-
-    const handleSaveDuration = async () => {
-        if (!doctorProfile) return
-        try {
-            setIsSavingDuration(true)
-            await doctorService.update(doctorProfile._id, {
-                availability,
-                sessionDuration: Number(sessionDuration)
-            })
-            addToast('Session duration saved successfully!', 'success')
-            await fetchProfile()
-        } catch (err) {
-            console.error(err)
-            addToast('Failed to update session duration.', 'error')
-        } finally {
-            setIsSavingDuration(false)
-        }
+        addToast('Time slot removed locally. Click Save Schedule to persist changes.', 'info')
     }
 
     return (
@@ -268,29 +249,18 @@ const Schedule = () => {
                             
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-sm font-medium text-gray-700">Duration</label>
-                                <div className="flex items-center gap-2">
-                                    <div className="relative flex items-center max-w-[120px]">
-                                        <input
-                                            type="number"
-                                            value={sessionDuration}
-                                            onChange={(e) => setSessionDuration(e.target.value)}
-                                            min={5}
-                                            max={120}
-                                            className="w-full h-11 pl-4 pr-12 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                        />
-                                        <span className="absolute right-4 text-xs font-semibold text-gray-400 pointer-events-none select-none">
-                                            min
-                                        </span>
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handleSaveDuration}
-                                        isLoading={isSavingDuration}
-                                        className="h-11"
-                                    >
-                                        Save
-                                    </Button>
+                                <div className="relative flex items-center max-w-[120px]">
+                                    <input
+                                        type="number"
+                                        value={sessionDuration}
+                                        onChange={(e) => setSessionDuration(e.target.value)}
+                                        min={5}
+                                        max={120}
+                                        className="w-full h-11 pl-4 pr-12 text-sm cursor-text rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                    <span className="absolute right-4 text-xs font-semibold text-gray-400 pointer-events-none select-none">
+                                        min
+                                    </span>
                                 </div>
                             </div>
                             <p className="text-xs text-gray-400 leading-relaxed">
@@ -325,7 +295,7 @@ const Schedule = () => {
                                             value={newFrom}
                                             onChange={(e) => setNewFrom(e.target.value)}
                                             required
-                                            className="w-full min-w-[130px] h-11 pl-3 pr-1.5 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            className="w-full min-w-[130px] h-11 pl-3 pr-1.5 text-sm cursor-text rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                         />
                                     </div>
                                     <div className="flex flex-col gap-1.5">
@@ -335,7 +305,7 @@ const Schedule = () => {
                                             value={newTo}
                                             onChange={(e) => setNewTo(e.target.value)}
                                             required
-                                            className="w-full min-w-[130px] h-11 pl-3 pr-1.5 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            className="w-full min-w-[130px] h-11 pl-3 pr-1.5 text-sm cursor-text rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                         />
                                     </div>
                                 </div>
@@ -368,6 +338,15 @@ const Schedule = () => {
                                     <Calendar size={16} className="text-gray-400" />
                                     <h3 className="text-sm font-medium text-gray-900">Weekly Availability</h3>
                                 </div>
+                                <Button
+                                    variant="primary"
+                                    size="sm"
+                                    disabled={!hasChanges}
+                                    isLoading={isSaving}
+                                    onClick={handleSave}
+                                >
+                                    Save Schedule
+                                </Button>
                             </div>
 
                             {availability.length === 0 ? (
@@ -397,18 +376,16 @@ const Schedule = () => {
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     type="button"
-                                                    disabled={isSaving}
                                                     onClick={() => handleEditSlot(index)}
-                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 disabled:opacity-40 transition-colors duration-150 cursor-pointer"
+                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors duration-150 cursor-pointer"
                                                     title="Edit slot"
                                                 >
                                                     <Pencil size={14} />
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    disabled={isSaving}
                                                     onClick={() => handleRemoveSlot(index)}
-                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-40 transition-colors duration-150 cursor-pointer"
+                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-150 cursor-pointer"
                                                     title="Remove slot"
                                                 >
                                                     <Trash2 size={14} />

@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
-    FiUsers, FiStar, FiClock, FiMoreVertical, FiChevronRight
+    FiUsers, FiStar, FiClock, FiMoreVertical
 } from 'react-icons/fi'
-import { useAuth } from '../../context/AuthContext'
 import doctorService from '../../services/doctor.service'
 
 const typeStyles = {
@@ -24,7 +23,6 @@ const scheduleStatusStyles = {
 }
 
 const DoctorDashboard = () => {
-    const { user } = useAuth()
     const [stats, setStats] = useState(null)
     const [todaySchedule, setTodaySchedule] = useState([])
     const [reviews, setReviews] = useState([])
@@ -73,7 +71,6 @@ const DoctorDashboard = () => {
     if (totalMonthly > 0) {
         const completedCount = statusDist.find(s => s.status === 'completed')?.count || 0
         const cancelledCount = statusDist.find(s => s.status === 'cancelled')?.count || 0
-        const noShowCount = totalMonthly - completedCount - cancelledCount
         statusRingData[0].pct = Math.round((completedCount / totalMonthly) * 100)
         statusRingData[1].pct = Math.round((cancelledCount / totalMonthly) * 100)
         statusRingData[2].pct = 100 - statusRingData[0].pct - statusRingData[1].pct

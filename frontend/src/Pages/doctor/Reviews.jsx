@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import reviewService from '../../services/review.service'
-import Badge from '../../components/ui/Badge'
 import Avatar from '../../components/ui/Avatar'
 import Pagination from '../../components/ui/Pagination'
 import EmptyState from '../../components/ui/EmptyState'
@@ -11,13 +10,12 @@ import { Star, MessageSquare } from 'lucide-react'
 const Reviews = () => {
     const [reviews, setReviews] = useState([])
     const [summary, setSummary] = useState({ averageRating: 0, totalReviews: 0 })
-    const [total, setTotal] = useState(0)
     const [totalPages, setTotalPages] = useState(1)
     const [currentPage, setCurrentPage] = useState(1)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             setLoading(true)
             setError('')
@@ -26,7 +24,6 @@ const Reviews = () => {
                 reviewService.getDoctorOwnSummary()
             ])
             setReviews(reviewsRes.data || [])
-            setTotal(reviewsRes.total || 0)
             setTotalPages(reviewsRes.totalPages || 1)
             setSummary(summaryRes || { averageRating: 0, totalReviews: 0 })
         } catch (err) {
@@ -35,11 +32,17 @@ const Reviews = () => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [currentPage])
 
     useEffect(() => {
-        fetchData()
-    }, [currentPage])
+        let active = true
+        const load = async () => {
+            if (!active) return
+            await fetchData()
+        }
+        load()
+        return () => { active = false }
+    }, [fetchData])
 
     return (
         <div className="space-y-6 animate-in fade-in duration-300">

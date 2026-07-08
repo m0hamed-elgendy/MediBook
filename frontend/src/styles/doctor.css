@@ -233,50 +233,6 @@
     padding: 28px 32px;
 }
 
-/* ---- Footer ---- */
-.doc-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 32px;
-    background: #FFFFFF;
-    border-top: 1px solid #E8ECF1;
-}
-
-.doc-footer-left {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.doc-footer-brand {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1565C0;
-}
-
-.doc-footer-copy {
-    font-size: 12px;
-    color: #94A3B8;
-}
-
-.doc-footer-links {
-    display: flex;
-    gap: 20px;
-}
-
-.doc-footer-links a {
-    font-size: 13px;
-    color: #64748B;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.doc-footer-links a:hover {
-    color: #1565C0;
-}
-
 
 /* ====================================================
    DOCTOR DASHBOARD
@@ -420,6 +376,7 @@
     font-weight: 600;
     color: #1565C0;
     text-decoration: none;
+    cursor: pointer;
 }
 
 .dd-view-all:hover {
@@ -789,6 +746,7 @@
     font-weight: 600;
     color: #1565C0;
     text-decoration: none;
+    cursor: pointer;
 }
 
 .dd-reviews-viewall:hover {
@@ -830,13 +788,5 @@
         padding: 12px 16px;
     }
 
-    .doc-footer {
-        flex-direction: column;
-        gap: 12px;
-        text-align: center;
-    }
 
-    .doc-footer-links {
-        justify-content: center;
-    }
 }

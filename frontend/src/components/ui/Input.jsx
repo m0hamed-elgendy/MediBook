@@ -1,6 +1,6 @@
-import React from 'react'
+import { forwardRef } from 'react'
 
-const Input = React.forwardRef(({
+const Input = forwardRef(({
     type = 'text',
     label,
     error,
@@ -13,7 +13,7 @@ const Input = React.forwardRef(({
     return (
         <div className="flex flex-col w-full gap-1.5">
             {label && (
-                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-700">
                     {label} {required && <span className="text-red-500">*</span>}
                 </label>
             )}
@@ -23,21 +23,20 @@ const Input = React.forwardRef(({
                 disabled={disabled}
                 required={required}
                 className={`
-                    w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 shadow-sm transition-all duration-200
+                    w-full h-11 px-4 text-sm rounded-xl border bg-white text-gray-900 shadow-sm
+                    transition-all duration-200 cursor-text
                     placeholder:text-gray-400
                     focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100
                     disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
-                    dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-600
-                    dark:focus:border-blue-500 dark:focus:ring-blue-950/30
-                    ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-100 dark:border-red-500' : ''}
+                    ${error ? 'border-red-500 ring-2 ring-red-100' : 'border-gray-200 hover:border-gray-300'}
                     ${className}
                 `}
                 {...props}
             />
             {error ? (
-                <p className="text-xs font-medium text-red-600 dark:text-red-400">{error}</p>
+                <p className="text-xs font-medium text-red-500">{error}</p>
             ) : helperText ? (
-                <p className="text-xs text-gray-500 dark:text-gray-400">{helperText}</p>
+                <p className="text-xs text-gray-400">{helperText}</p>
             ) : null}
         </div>
     )
