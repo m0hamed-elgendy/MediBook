@@ -1,6 +1,11 @@
 import api from './api'
 
 const doctorService = {
+    create: async (data) => {
+        const response = await api.post('/doctors', data)
+        return response.data
+    },
+
     getDoctors: async (params = {}) => {
         const response = await api.get('/doctors', { params })
         return response.data

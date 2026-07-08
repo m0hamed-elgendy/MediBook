@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import doctorService from '../../services/doctor.service'
 import uploadService from '../../services/upload.service'
 import { useToast } from '../../context/ToastContext'
+import { useAuth } from '../../context/AuthContext'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Skeleton from '../../components/ui/Skeleton'
@@ -10,7 +11,9 @@ import { FiCamera, FiPlus, FiX } from 'react-icons/fi'
 
 const Profile = () => {
     const { addToast } = useToast()
+    const { user } = useAuth()
     const [profile, setProfile] = useState(null)
+    const [isNewDoctor, setIsNewDoctor] = useState(false)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [isSaving, setIsSaving] = useState(false)
@@ -30,7 +33,7 @@ const Profile = () => {
     const [symptoms, setSymptoms] = useState([])
     const [symptomInput, setSymptomInput] = useState('')
 
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         try {
             setLoading(true)
             setError('')
@@ -45,14 +48,47 @@ const Profile = () => {
             setSymptoms(res.symptoms || [])
         } catch (err) {
             console.error(err)
-            setError('Failed to load doctor profile details.')
+            if (err.response?.status === 404) {
+                setIsNewDoctor(true)
+            } else {
+                setError('Failed to load doctor profile details.')
+            }
         } finally {
             setLoading(false)
         }
-    }
+    }, [])
 
     useEffect(() => {
-        fetchProfile()
+        let active = true
+        const load = async () => {
+            try {
+                setLoading(true)
+                setError('')
+                const res = await doctorService.getProfile()
+                if (!active) return
+                setProfile(res)
+                setSpecialty(res.specialty || '')
+                setBio(res.bio || '')
+                setPhone(res.phone || '')
+                setAddress(res.address || '')
+                setConsultationPrice(res.consultationPrice || 0)
+                setServices(res.services || [])
+                setSymptoms(res.symptoms || [])
+            } catch (err) {
+                if (active) {
+                    console.error(err)
+                    if (err.response?.status === 404) {
+                        setIsNewDoctor(true)
+                    } else {
+                        setError('Failed to load doctor profile details.')
+                    }
+                }
+            } finally {
+                if (active) setLoading(false)
+            }
+        }
+        load()
+        return () => { active = false }
     }, [])
 
     const handleImageUpload = async (e) => {
@@ -61,7 +97,7 @@ const Profile = () => {
         try {
             setIsUploading(true)
             const res = await uploadService.uploadProfileImage(file)
-            setProfile(prev => ({ ...prev, user: { ...prev.user, profileImage: res.profileImage } }))
+            setProfile(prev => prev ? ({ ...prev, user: { ...prev.user, profileImage: res.profileImage } }) : null)
             addToast('Profile image uploaded successfully!')
         } catch (err) {
             console.error(err)
@@ -97,22 +133,37 @@ const Profile = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        if (!profile) return
         try {
             setIsSaving(true)
-            await doctorService.update(profile._id, {
-                specialty,
-                bio,
-                phone,
-                address,
-                consultationPrice: Number(consultationPrice),
-                services,
-                symptoms
-            })
-            addToast('Doctor professional profile updated!')
+            if (isNewDoctor) {
+                const res = await doctorService.create({
+                    specialty,
+                    bio,
+                    phone,
+                    address,
+                    consultationPrice: Number(consultationPrice),
+                    services,
+                    symptoms
+                })
+                setProfile(res)
+                setIsNewDoctor(false)
+                addToast('Doctor professional profile created successfully!')
+            } else {
+                if (!profile) return
+                await doctorService.update(profile._id, {
+                    specialty,
+                    bio,
+                    phone,
+                    address,
+                    consultationPrice: Number(consultationPrice),
+                    services,
+                    symptoms
+                })
+                addToast('Doctor professional profile updated!')
+            }
         } catch (err) {
             console.error(err)
-            addToast('Failed to update profile details.', 'error')
+            addToast('Failed to save profile details.', 'error')
         } finally {
             setIsSaving(false)
         }
@@ -121,9 +172,11 @@ const Profile = () => {
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
             <div className="flex flex-col gap-1.5">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Professional Profile</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+                    {isNewDoctor ? 'Create Professional Profile' : 'Professional Profile'}
+                </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Update your biography, pricing, services, and list treated symptoms.
+                    {isNewDoctor ? 'Fill in your clinic and consultation details to start receiving appointments.' : 'Update your biography, pricing, services, and list treated symptoms.'}
                 </p>
             </div>
 
@@ -141,15 +194,15 @@ const Profile = () => {
                         <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-xl p-6 flex flex-col items-center justify-center text-center shadow-sm">
                             <div className="relative group">
                                 <div className="w-28 h-28 rounded-full border-2 border-gray-200 dark:border-gray-800 overflow-hidden bg-slate-50 flex items-center justify-center">
-                                    {profile?.user?.profileImage ? (
+                                    {profile?.user?.profileImage || user?.profileImage ? (
                                         <img
-                                            src={profile.user.profileImage}
-                                            alt={profile.user.name}
+                                            src={profile?.user?.profileImage || user?.profileImage}
+                                            alt={profile?.user?.name || user?.name}
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
                                         <span className="text-4xl font-extrabold text-blue-600">
-                                            {profile?.user?.name?.charAt(0).toUpperCase()}
+                                            {(profile?.user?.name || user?.name || 'D').charAt(0).toUpperCase()}
                                         </span>
                                     )}
                                 </div>
@@ -165,9 +218,9 @@ const Profile = () => {
                                 </label>
                             </div>
                             <h3 className="text-base font-bold text-gray-850 dark:text-gray-200 mt-4">
-                                Dr. {profile?.user?.name}
+                                Dr. {profile?.user?.name || user?.name}
                             </h3>
-                            <p className="text-xs text-gray-400 mt-0.5">{profile?.user?.email}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{profile?.user?.email || user?.email}</p>
                             
                             {isUploading && (
                                 <span className="text-xs font-semibold text-blue-600 animate-pulse mt-2">Uploading image...</span>
@@ -286,7 +339,7 @@ const Profile = () => {
 
                             <div className="flex justify-end pt-4 border-t border-gray-150 dark:border-gray-800">
                                 <Button type="submit" isLoading={isSaving}>
-                                    Update Profile
+                                    {isNewDoctor ? 'Create Profile' : 'Update Profile'}
                                 </Button>
                             </div>
                         </div>
