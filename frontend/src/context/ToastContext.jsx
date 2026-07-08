@@ -7,13 +7,27 @@ const ToastContext = createContext(null)
 export const ToastProvider = ({ children }) => {
     const [toasts, setToasts] = useState([])
 
-    const addToast = useCallback((message, type = 'success', duration = 3000) => {
-        const id = Math.random().toString(36).substring(2, 9)
-        setToasts(prev => [...prev, { id, message, type }])
-
-        setTimeout(() => {
-            setToasts(prev => prev.filter(t => t.id !== id))
-        }, duration)
+    const addToast = useCallback((message, type = 'success', duration = 3000, dedupKey) => {
+        const key = dedupKey || message
+        setToasts(prev => {
+            const existing = prev.find(t => t.dedupKey === key || t.message === key)
+            if (existing) {
+                clearTimeout(existing.timerId)
+                const newTimerId = setTimeout(() => {
+                    setToasts(p => p.filter(t => t.timerId !== newTimerId && t.id !== existing.id))
+                }, duration)
+                return prev.map(t =>
+                    (t.dedupKey === key || t.message === key)
+                        ? { ...t, message, type, timerId: newTimerId, createdAt: Date.now() }
+                        : t
+                )
+            }
+            const id = Math.random().toString(36).substring(2, 9)
+            const timerId = setTimeout(() => {
+                setToasts(p => p.filter(t => t.timerId !== timerId))
+            }, duration)
+            return [...prev, { id, message, type, dedupKey: key, timerId, createdAt: Date.now() }]
+        })
     }, [])
 
     const removeToast = useCallback((id) => {
