@@ -12,7 +12,9 @@ const authServices = {
         const response = await api.post('/auth/logout')
         return response.data
     },
-    
-
+    refresh: async (refreshToken) => {
+        const response = await api.post('/auth/refresh', { refreshToken })
+        return response.data
+    }
 }
 export default authServices
