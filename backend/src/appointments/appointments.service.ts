@@ -9,7 +9,7 @@ import { PaginationDto } from 'src/common/pagination.dto';
 /**
  * Converts a 12-hour AM/PM time string (e.g. "02:30 PM") to total minutes since midnight.
  */
-function parseTimeToMinutes(time: string): number {
+export function parseTimeToMinutes(time: string): number {
     const [timePart, period] = time.split(' ');
     let [hours, minutes] = timePart.split(':').map(Number);
     if (period === 'AM' && hours === 12) hours = 0;
@@ -44,18 +44,15 @@ export class AppointmentsService {
             throw new BadRequestException('This doctor is not approved yet');
         }
 
-        // #3: Validate appointment date is today or in the future
-        const appointmentDate = new Date(dto.date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        appointmentDate.setHours(0, 0, 0, 0);
-        if (appointmentDate < today) {
+        // #3: Validate appointment date is today or in the future (calendar date only, no timezone issues)
+        const todayStr = new Date().toLocaleDateString('en-CA');
+        if (dto.date < todayStr) {
             throw new BadRequestException('Appointment date must be today or in the future');
         }
 
         // #4: If booking today, ensure the time hasn't already passed
-        const now = new Date();
-        if (appointmentDate.getTime() === today.getTime()) {
+        if (dto.date === todayStr) {
+            const now = new Date();
             const appointmentMinutes = parseTimeToMinutes(dto.time);
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
             if (appointmentMinutes <= currentMinutes) {
@@ -65,7 +62,8 @@ export class AppointmentsService {
 
         // #5: Check doctor availability on this day
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const dayName = days[appointmentDate.getDay()];
+        const parsedDate = new Date(dto.date + 'T12:00:00');
+        const dayName = days[parsedDate.getDay()];
 
         if (!doctor.availability || doctor.availability.length === 0) {
             throw new BadRequestException('This doctor has no availability set');
