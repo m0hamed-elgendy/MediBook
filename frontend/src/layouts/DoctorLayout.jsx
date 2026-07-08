@@ -1,27 +1,35 @@
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { SidebarProvider, useSidebar } from '../context/SidebarContext'
+import Sidebar from '../components/common/Sidebar'
 import AnimatedPage from '../components/common/AnimatedPage'
-import {
-    FiGrid, FiCalendar, FiClipboard,
-    FiStar, FiUser, FiLogOut, FiBell, FiPlusCircle
-} from 'react-icons/fi'
-import { Link } from 'react-router-dom'
+import { LayoutDashboard, ClipboardList, CalendarDays, Star, User, Bell, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 
-const navItems = [
-    { to: '/doctor/dashboard', label: 'Dashboard', icon: FiGrid },
-    { to: '/doctor/schedule', label: "Today's Schedule", icon: FiClipboard },
-    { to: '/doctor/appointments', label: 'Appointments', icon: FiCalendar },
-    { to: '/doctor/reviews', label: 'Reviews', icon: FiStar },
-    { to: '/doctor/profile', label: 'Profile', icon: FiUser },
+const doctorNavigation = [
+    { title: 'Dashboard', path: '/doctor/dashboard', icon: LayoutDashboard },
+    { title: "Today's Schedule", path: '/doctor/schedule', icon: ClipboardList },
+    { title: 'Appointments', path: '/doctor/appointments', icon: CalendarDays },
+    { title: 'Reviews', path: '/doctor/reviews', icon: Star },
+    { title: 'Profile', path: '/doctor/profile', icon: User },
 ]
 
-const DoctorLayout = () => {
+const DoctorLayoutInner = () => {
     const { user, logout } = useAuth()
     const navigate = useNavigate()
+    const location = useLocation()
+    const { collapsed, isMobile, toggleCollapsed, toggleMobile } = useSidebar()
 
     const handleLogout = () => {
         logout()
         navigate('/login')
+    }
+
+    const handleToggle = () => {
+        if (isMobile) {
+            toggleMobile()
+        } else {
+            toggleCollapsed()
+        }
     }
 
     const initials = user?.name
@@ -29,97 +37,85 @@ const DoctorLayout = () => {
         : 'D'
 
     return (
-        <div className="doc-layout">
+        <div className="admin-layout-root">
             {/* Sidebar */}
-            <aside className="doc-sidebar">
-                {/* Logo */}
-                <div className="doc-sidebar-logo">
-                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                        <rect width="28" height="28" rx="8" fill="#1565C0" />
-                        <path d="M8 14h12M14 8v12" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
-                    </svg>
-                    <div className="doc-sidebar-logo-wrap">
-                        <span className="doc-sidebar-logo-text">MediBook</span>
-                        <span className="doc-sidebar-logo-sub">Doctor Dashboard</span>
-                    </div>
-                </div>
+            <Sidebar
+                navigationItems={doctorNavigation}
+                user={{
+                    name: user?.name ? `Dr. ${user.name}` : 'Doctor',
+                    specialty: user?.specialty || 'Specialist',
+                    profileImage: user?.profileImage || null,
+                }}
+                role="doctor"
+                onLogout={handleLogout}
+            />
 
-                {/* Navigation */}
-                <nav className="doc-sidebar-nav">
-                    {navItems.map(item => (
-                        <NavLink
-                            key={item.to}
-                            to={item.to}
-                            className={({ isActive }) =>
-                                `doc-nav-item ${isActive ? 'doc-nav-item-active' : ''}`
-                            }
+            {/* Main Wrapper */}
+            <div
+                className="admin-layout-main"
+                style={{
+                    marginLeft: isMobile ? 0 : collapsed ? 88 : 280,
+                    transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+            >
+                {/* Header / Top Bar */}
+                <header className="admin-header">
+                    <div className="admin-header-left">
+                        <button
+                            type="button"
+                            className="admin-header-menu-btn cursor-pointer"
+                            onClick={handleToggle}
+                            aria-label="Toggle sidebar"
                         >
-                            <item.icon size={18} />
-                            <span>{item.label}</span>
-                        </NavLink>
-                    ))}
-                </nav>
-
-                {/* User Profile & Logout */}
-                <div className="doc-sidebar-footer">
-                    <div className="doc-sidebar-user">
-                        <div className="doc-sidebar-avatar">{initials}</div>
-                        <div className="doc-sidebar-user-info">
-                            <span className="doc-sidebar-user-name">
-                                Dr. {user?.name || 'Doctor'}
-                            </span>
-                            <span className="doc-sidebar-user-role">
-                                {user?.specialty || 'Specialist'}
-                            </span>
-                        </div>
-                    </div>
-                    <button className="doc-nav-item doc-logout-btn" onClick={handleLogout}>
-                        <FiLogOut size={18} />
-                        <span>Logout</span>
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main Area */}
-            <div className="doc-main-wrapper">
-                {/* Top Bar */}
-                <header className="doc-topbar">
-                    <div className="doc-topbar-spacer" />
-                    <div className="doc-topbar-actions">
-                        <button className="doc-topbar-bell" aria-label="Notifications">
-                            <FiBell size={20} />
-                            <span className="doc-topbar-bell-dot" />
+                            {isMobile ? (
+                                <Menu size={20} />
+                            ) : collapsed ? (
+                                <PanelLeftOpen size={20} />
+                            ) : (
+                                <PanelLeftClose size={20} />
+                            )}
                         </button>
-                        <Link to="/doctor/appointments" className="doc-topbar-cta">
-                            <FiPlusCircle size={16} />
-                            Book New Appointment
-                        </Link>
+                    </div>
+
+                    <div className="admin-header-right">
+                        <button type="button" className="admin-header-notif-btn cursor-pointer" aria-label="Notifications">
+                            <Bell size={20} />
+                            <span className="admin-header-notif-badge"></span>
+                        </button>
+                        
+                        <div className="admin-header-divider" />
+                        
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shadow-sm border border-white">
+                                {initials}
+                            </div>
+                            <div className="flex flex-col text-left">
+                                <span className="text-xs font-semibold text-gray-800">
+                                    Dr. {user?.name || 'Doctor'}
+                                </span>
+                                <span className="text-[10px] text-gray-400">
+                                    {user?.specialty || 'Specialist'}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </header>
 
-                {/* Page Content */}
-                <main className="doc-main">
-                    <AnimatedPage>
+                {/* Content */}
+                <main className="admin-layout-content">
+                    <AnimatedPage key={location.pathname}>
                         <Outlet />
                     </AnimatedPage>
                 </main>
-
-                {/* Footer */}
-                <footer className="doc-footer">
-                    <div className="doc-footer-left">
-                        <span className="doc-footer-brand">MediBook</span>
-                        <span className="doc-footer-copy">© 2024 MediBook. All rights reserved.</span>
-                    </div>
-                    <div className="doc-footer-links">
-                        <a href="#">About</a>
-                        <a href="#">Services</a>
-                        <a href="#">Contact</a>
-                        <a href="#">Privacy</a>
-                    </div>
-                </footer>
             </div>
         </div>
     )
 }
+
+const DoctorLayout = () => (
+    <SidebarProvider>
+        <DoctorLayoutInner />
+    </SidebarProvider>
+)
 
 export default DoctorLayout
