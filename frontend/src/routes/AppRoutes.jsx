@@ -68,6 +68,7 @@ const AppRoutes = () => {
                             <Route path="/admin/appointments" element={<Appointments />} />
                             <Route path="/admin/reviews" element={<ReviewsAdmin />} />
                             <Route path="/admin/settings" element={<Settings />} />
+                            <Route path="/admin/*" element={<NotFound />} />
                         </Route>
                     </Route>
 
@@ -79,6 +80,7 @@ const AppRoutes = () => {
                             <Route path="/doctor/appointments" element={<DoctorAppointments />} />
                             <Route path="/doctor/reviews" element={<DoctorReviews />} />
                             <Route path="/doctor/profile" element={<DoctorProfile />} />
+                            <Route path="/doctor/*" element={<NotFound />} />
                         </Route>
                     </Route>
 
@@ -90,6 +92,7 @@ const AppRoutes = () => {
                             <Route path="/patient/settings" element={<PatientProfile />} />
                             <Route path="/patient/reviews" element={<MyReviews />} />
                             <Route path="/apply-doctor" element={<ApplyDoctor />} />
+                            <Route path="/patient/*" element={<NotFound />} />
                         </Route>
                     </Route>
 
