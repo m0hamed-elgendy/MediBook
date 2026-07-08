@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import AnimatedPage from '../components/common/AnimatedPage'
 import {
@@ -9,7 +9,7 @@ import {
 const navItems = [
     { to: '/patient/dashboard', label: 'Dashboard', icon: FiGrid },
     { to: '/patient/appointments', label: 'Appointments', icon: FiCalendar },
-    { to: '/patient/messages', label: 'Messages', icon: FiMessageSquare },
+    { to: '/patient/reviews', label: 'My Reviews', icon: FiMessageSquare },
     { to: '/patient/settings', label: 'Settings', icon: FiSettings },
     { to: '/patient/help', label: 'Help Center', icon: FiHelpCircle },
 ]

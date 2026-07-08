@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react'
+import { Suspense, lazy } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import PublicRoutes from './publicRoutes'
@@ -28,6 +28,7 @@ const PatientProfile = lazy(() => import('../pages/patient/Profile'))
 const DoctorSearch = lazy(() => import('../pages/patient/DoctorSearch'))
 const Home = lazy(() => import('../pages/Home'))
 const ApplyDoctor = lazy(() => import('../pages/patient/ApplyDoctor'))
+const MyReviews = lazy(() => import('../pages/patient/MyReviews'))
 const DoctorDetails = lazy(() => import('../pages/patient/DoctorDetails'))
 const NotFound = lazy(() => import('../pages/NotFound'))
 
@@ -87,6 +88,7 @@ const AppRoutes = () => {
                             <Route path="/patient/dashboard" element={<PatientDashboard />} />
                             <Route path="/patient/appointments" element={<MyAppointments />} />
                             <Route path="/patient/settings" element={<PatientProfile />} />
+                            <Route path="/patient/reviews" element={<MyReviews />} />
                             <Route path="/apply-doctor" element={<ApplyDoctor />} />
                         </Route>
                     </Route>
