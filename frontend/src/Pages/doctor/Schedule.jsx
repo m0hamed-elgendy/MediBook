@@ -11,6 +11,71 @@ const DAYS_OF_WEEK = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
 ]
 
+// Normalizes any time format to a standardized 12-Hour format: "09:00 AM" or "05:00 PM"
+const ensure12Hour = (timeStr) => {
+    if (!timeStr) return ''
+    const trimmed = timeStr.trim()
+    
+    // Check if already in 12-hour format with AM/PM
+    if (trimmed.toLowerCase().includes('am') || trimmed.toLowerCase().includes('pm')) {
+        const parts = trimmed.split(/\s+/)
+        if (parts.length === 2) {
+            const timePart = parts[0]
+            const [h, m] = timePart.split(':')
+            const hours = parseInt(h, 10)
+            const minutes = parseInt(m, 10)
+            if (!isNaN(hours) && !isNaN(minutes)) {
+                return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${parts[1].toUpperCase()}`
+            }
+            return `${parts[0]} ${parts[1].toUpperCase()}`
+        }
+        return trimmed.toUpperCase()
+    }
+    
+    // Parse 24-hour format
+    const [hStr, mStr] = trimmed.split(':')
+    let h = parseInt(hStr, 10)
+    let m = parseInt(mStr, 10)
+    if (isNaN(h) || isNaN(m)) return trimmed
+    
+    const period = h >= 12 ? 'PM' : 'AM'
+    h = h % 12 || 12
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`
+}
+
+// Normalizes any time format to standard 24-Hour format for HTML5 time input: "HH:mm"
+const ensure24Hour = (timeStr) => {
+    if (!timeStr) return '09:00'
+    const trimmed = timeStr.trim()
+    
+    // Check if it is already in 24-hour style and does not have AM/PM
+    if (!trimmed.toLowerCase().includes('am') && !trimmed.toLowerCase().includes('pm')) {
+        const [h, m] = trimmed.split(':')
+        const hours = parseInt(h, 10)
+        const minutes = parseInt(m, 10)
+        if (!isNaN(hours) && !isNaN(minutes)) {
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+        }
+        return trimmed
+    }
+    
+    // Parse 12-hour format: "09:00 AM" or "5:00 PM"
+    const match = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)$/i)
+    if (!match) return trimmed
+    
+    let hours = parseInt(match[1], 10)
+    const minutes = match[2]
+    const period = match[3].toUpperCase()
+    
+    if (period === 'PM' && hours !== 12) {
+        hours += 12
+    } else if (period === 'AM' && hours === 12) {
+        hours = 0
+    }
+    
+    return `${String(hours).padStart(2, '0')}:${minutes}`
+}
+
 const Schedule = () => {
     const { addToast } = useToast()
     const [doctorProfile, setDoctorProfile] = useState(null)
@@ -19,8 +84,9 @@ const Schedule = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [isSaving, setIsSaving] = useState(false)
+    const [isSavingDuration, setIsSavingDuration] = useState(false)
 
-    // Form inputs state
+    // Form inputs state (stored as 24h internally for the time input elements)
     const [newDay, setNewDay] = useState('Monday')
     const [newFrom, setNewFrom] = useState('09:00')
     const [newTo, setNewTo] = useState('17:00')
@@ -68,11 +134,32 @@ const Schedule = () => {
         return () => { active = false }
     }, [])
 
-    const handleAddSlot = (e) => {
+    const persistAvailability = async (newAvailability, successMessage) => {
+        if (!doctorProfile) return
+        try {
+            setIsSaving(true)
+            await doctorService.update(doctorProfile._id, {
+                availability: newAvailability,
+                sessionDuration: Number(sessionDuration)
+            })
+            addToast(successMessage, 'success')
+            // Refetch schedule to keep UI synchronized with backend
+            await fetchProfile()
+        } catch (err) {
+            console.error(err)
+            addToast('Failed to update weekly availability schedule.', 'error')
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    const handleAddSlot = async (e) => {
         e.preventDefault()
 
-        const [fromH, fromM] = newFrom.split(':').map(Number)
-        const [toH, toM] = newTo.split(':').map(Number)
+        const from24 = ensure24Hour(newFrom)
+        const to24 = ensure24Hour(newTo)
+        const [fromH, fromM] = from24.split(':').map(Number)
+        const [toH, toM] = to24.split(':').map(Number)
         const fromTotal = fromH * 60 + fromM
         const toTotal = toH * 60 + toM
 
@@ -81,29 +168,42 @@ const Schedule = () => {
             return
         }
 
+        let updatedAvailability
+        let msg
+
         if (editingIndex !== null) {
-            const updated = [...availability]
-            updated[editingIndex] = { day: newDay, from: newFrom, to: newTo }
-            setAvailability(updated)
+            updatedAvailability = [...availability]
+            updatedAvailability[editingIndex] = {
+                day: newDay,
+                from: ensure12Hour(newFrom),
+                to: ensure12Hour(newTo)
+            }
             setEditingIndex(null)
-            addToast('Time slot updated. Click save to apply changes.')
+            msg = 'Time slot updated successfully.'
         } else {
-            const newSlot = { day: newDay, from: newFrom, to: newTo }
-            setAvailability(prev => [...prev, newSlot])
-            addToast('Time slot added. Click save to apply changes.')
+            const newSlot = {
+                day: newDay,
+                from: ensure12Hour(newFrom),
+                to: ensure12Hour(newTo)
+            }
+            updatedAvailability = [...availability, newSlot]
+            msg = 'Time slot added successfully.'
         }
 
-        // Reset time slot form inputs
+        // Reset inputs
         setNewDay('Monday')
         setNewFrom('09:00')
         setNewTo('17:00')
+
+        // Persist to backend immediately
+        await persistAvailability(updatedAvailability, msg)
     }
 
     const handleEditSlot = (index) => {
         const slot = availability[index]
         setNewDay(slot.day)
-        setNewFrom(slot.from)
-        setNewTo(slot.to)
+        setNewFrom(ensure24Hour(slot.from))
+        setNewTo(ensure24Hour(slot.to))
         setEditingIndex(index)
     }
 
@@ -114,28 +214,29 @@ const Schedule = () => {
         setNewTo('17:00')
     }
 
-    const handleRemoveSlot = (index) => {
-        setAvailability(prev => prev.filter((_, i) => i !== index))
+    const handleRemoveSlot = async (index) => {
+        const updatedAvailability = availability.filter((_, i) => i !== index)
         if (editingIndex === index) {
             setEditingIndex(null)
         }
-        addToast('Time slot removed. Click save to apply changes.')
+        await persistAvailability(updatedAvailability, 'Time slot removed successfully.')
     }
 
-    const handleSave = async () => {
+    const handleSaveDuration = async () => {
         if (!doctorProfile) return
         try {
-            setIsSaving(true)
+            setIsSavingDuration(true)
             await doctorService.update(doctorProfile._id, {
                 availability,
                 sessionDuration: Number(sessionDuration)
             })
-            addToast('Weekly schedule availability updated successfully!')
+            addToast('Session duration saved successfully!', 'success')
+            await fetchProfile()
         } catch (err) {
             console.error(err)
-            addToast('Failed to update weekly availability schedule.', 'error')
+            addToast('Failed to update session duration.', 'error')
         } finally {
-            setIsSaving(false)
+            setIsSavingDuration(false)
         }
     }
 
@@ -167,18 +268,29 @@ const Schedule = () => {
                             
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-sm font-medium text-gray-700">Duration</label>
-                                <div className="relative flex items-center max-w-[120px]">
-                                    <input
-                                        type="number"
-                                        value={sessionDuration}
-                                        onChange={(e) => setSessionDuration(e.target.value)}
-                                        min={5}
-                                        max={120}
-                                        className="w-full h-11 pl-4 pr-12 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    />
-                                    <span className="absolute right-4 text-xs font-semibold text-gray-400 pointer-events-none select-none">
-                                        min
-                                    </span>
+                                <div className="flex items-center gap-2">
+                                    <div className="relative flex items-center max-w-[120px]">
+                                        <input
+                                            type="number"
+                                            value={sessionDuration}
+                                            onChange={(e) => setSessionDuration(e.target.value)}
+                                            min={5}
+                                            max={120}
+                                            className="w-full h-11 pl-4 pr-12 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        />
+                                        <span className="absolute right-4 text-xs font-semibold text-gray-400 pointer-events-none select-none">
+                                            min
+                                        </span>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleSaveDuration}
+                                        isLoading={isSavingDuration}
+                                        className="h-11"
+                                    >
+                                        Save
+                                    </Button>
                                 </div>
                             </div>
                             <p className="text-xs text-gray-400 leading-relaxed">
@@ -213,7 +325,7 @@ const Schedule = () => {
                                             value={newFrom}
                                             onChange={(e) => setNewFrom(e.target.value)}
                                             required
-                                            className="w-full h-11 px-4 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            className="w-full min-w-[130px] h-11 pl-3 pr-1.5 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                         />
                                     </div>
                                     <div className="flex flex-col gap-1.5">
@@ -223,7 +335,7 @@ const Schedule = () => {
                                             value={newTo}
                                             onChange={(e) => setNewTo(e.target.value)}
                                             required
-                                            className="w-full h-11 px-4 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            className="w-full min-w-[130px] h-11 pl-3 pr-1.5 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                         />
                                     </div>
                                 </div>
@@ -256,14 +368,6 @@ const Schedule = () => {
                                     <Calendar size={16} className="text-gray-400" />
                                     <h3 className="text-sm font-medium text-gray-900">Weekly Availability</h3>
                                 </div>
-                                <Button
-                                    variant="primary"
-                                    size="sm"
-                                    isLoading={isSaving}
-                                    onClick={handleSave}
-                                >
-                                    Save Schedule
-                                </Button>
                             </div>
 
                             {availability.length === 0 ? (
@@ -286,23 +390,25 @@ const Schedule = () => {
                                                 <span className="text-gray-300">|</span>
                                                 <span className="text-gray-500 flex items-center gap-1.5 font-medium">
                                                     <Clock size={13} className="text-gray-400 shrink-0" />
-                                                    {slot.from} - {slot.to}
+                                                    {ensure12Hour(slot.from)} → {ensure12Hour(slot.to)}
                                                 </span>
                                             </div>
                                             
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     type="button"
+                                                    disabled={isSaving}
                                                     onClick={() => handleEditSlot(index)}
-                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors duration-150 cursor-pointer"
+                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 disabled:opacity-40 transition-colors duration-150 cursor-pointer"
                                                     title="Edit slot"
                                                 >
                                                     <Pencil size={14} />
                                                 </button>
                                                 <button
                                                     type="button"
+                                                    disabled={isSaving}
                                                     onClick={() => handleRemoveSlot(index)}
-                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-150 cursor-pointer"
+                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-40 transition-colors duration-150 cursor-pointer"
                                                     title="Remove slot"
                                                 >
                                                     <Trash2 size={14} />
